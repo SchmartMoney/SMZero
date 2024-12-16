@@ -1,0 +1,4 @@
+repository "EasyAR_Test/SmartMonezAssets@328079@cloud"
+  path "/"
+    br "/main"
+    co "/main"
