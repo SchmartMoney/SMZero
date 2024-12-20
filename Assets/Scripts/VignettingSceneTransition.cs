@@ -1,76 +1,47 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using System.Collections;
+using TMPro;
 
 public class VignettingSceneTransition : MonoBehaviour
 {
-    public Volume postProcessingVolume; // The Post-Processing Volume for controlling effects
-    private Vignette vignette;          // Reference to the Vignette effect
-    private bool isTransitioning = false;
+    [SerializeField] private Volume globalVolume; // Post-processing global volume
+    [SerializeField] private TMP_Text transitionText; // Text for transition messages
 
+    private Vignette vignetteEffect;
+
+    // This is the Start method that runs when the scene starts
     private void Start()
     {
-        // Ensure the Volume and Vignette effect are set up properly
-        if (postProcessingVolume == null)
+        // Access vignette effect from the volume profile
+        if (globalVolume.profile.TryGet(out Vignette vignette))
         {
-            Debug.LogError("Post-Processing Volume is not assigned.");
-            return;
+            vignetteEffect = vignette;
+            vignetteEffect.intensity.value = 1f; // Start with full vignette (darkened screen)
+            StartCoroutine(FadeInVignette()); // Start fading in vignette effect
         }
 
-        if (postProcessingVolume.profile.TryGet(out Vignette vignetteEffect))
+        // Optionally, add logic for transition text
+        if (transitionText != null)
         {
-            vignette = vignetteEffect;
-            vignette.intensity.value = 0f; // Ensure it starts fully transparent
-        }
-        else
-        {
-            Debug.LogError("No Vignette effect found in the Volume profile.");
+            transitionText.text = "Scene Transition..."; // Set the initial transition text
         }
     }
 
-    public void FadeToScene(string sceneName)
+    // Coroutine to handle the fading in of vignette intensity
+    private System.Collections.IEnumerator FadeInVignette()
     {
-        if (!isTransitioning)
-        {
-            StartCoroutine(FadeOutAndLoadScene(sceneName));
-        }
-    }
+        float duration = 1.5f; // Duration for fade-in
+        float elapsed = 0f;
 
-    private IEnumerator FadeOutAndLoadScene(string sceneName)
-    {
-        if (vignette == null)
+        // Fade vignette intensity from 1 to 0 over time
+        while (elapsed < duration)
         {
-            Debug.LogError("Vignette effect is not set up.");
-            yield break;
-        }
-
-        isTransitioning = true;
-
-        // Fade out with Vignette effect
-        float fadeDuration = 1.5f; // Duration of the fade
-        for (float t = 0; t < fadeDuration; t += Time.deltaTime)
-        {
-            vignette.intensity.value = Mathf.Lerp(0f, 1f, t / fadeDuration);
+            elapsed += Time.deltaTime;
+            vignetteEffect.intensity.value = Mathf.Lerp(1f, 0f, elapsed / duration);
             yield return null;
         }
-        vignette.intensity.value = 1f; // Ensure it reaches full intensity
 
-        // Load the new scene
-        SceneManager.LoadScene(sceneName);
-
-        // Wait for one frame after the scene loads
-        yield return null;
-
-        // Fade in after loading
-        for (float t = 0; t < fadeDuration; t += Time.deltaTime)
-        {
-            vignette.intensity.value = Mathf.Lerp(1f, 0f, t / fadeDuration);
-            yield return null;
-        }
-        vignette.intensity.value = 0f; // Ensure it resets to fully transparent
-
-        isTransitioning = false;
+        vignetteEffect.intensity.value = 0f; // Ensure vignette ends at 0
     }
 }
