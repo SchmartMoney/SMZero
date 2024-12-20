@@ -3,13 +3,16 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using TMPro;
 
 public class VaultBuildingInteraction : MonoBehaviour
 {
-    public GameObject popupMenu;        // Reference to the UI Panel pop-up
+    public GameObject popupMenu;        // Reference to the UI Panel pop-up (e.g., VAPanel)
     public Button cancelButton;         // UI button to cancel and close the menu
     public Button proceedButton;        // UI button to transition scenes
     public Volume globalVolume;         // Post-Processing Global Volume
+    public GameObject transitionTextObject; // Text GameObject to show messages during transition
+    private TMP_Text transitionText;     // Reference to the TMP_Text component
     private Vignette vignetteEffect;    // Reference to the vignette effect
     private bool isTransitioning = false;
 
@@ -20,13 +23,20 @@ public class VaultBuildingInteraction : MonoBehaviour
 
         // Add listeners to buttons
         cancelButton.onClick.AddListener(ClosePopup);
-        proceedButton.onClick.AddListener(StartTransition);
+        proceedButton.onClick.AddListener(() => StartTransition("VaultAvenueDetailedScene", "Going to Vault Avenue..."));
 
         // Access the Vignette effect from Global Volume
         if (globalVolume.profile.TryGet(out Vignette vignette))
         {
             vignetteEffect = vignette;
             vignetteEffect.intensity.value = 0; // Initial vignette intensity
+        }
+
+        // Access the TMP_Text component from the transitionTextObject
+        if (transitionTextObject != null)
+        {
+            transitionText = transitionTextObject.GetComponent<TMP_Text>();
+            transitionTextObject.SetActive(false); // Hide text GameObject at the start
         }
     }
 
@@ -42,21 +52,36 @@ public class VaultBuildingInteraction : MonoBehaviour
         popupMenu.SetActive(false);
     }
 
-    public void StartTransition()
+    public void StartTransition(string sceneName, string message)
     {
-        // Public method for OnClick; starts the vignette transition coroutine
+        // Ensure the menu disappears before starting the vignette transition
+        popupMenu.SetActive(false);
+
+        // Debug to check transition start
+        Debug.Log("StartTransition called: " + message);
+
+        // Start the vignette transition coroutine with a specific scene and message
         if (!isTransitioning)
         {
             isTransitioning = true;
-            StartCoroutine(AnimateVignetteAndLoadScene());
+
+            if (transitionTextObject != null && transitionText != null)
+            {
+                transitionTextObject.SetActive(true); // Show the text GameObject
+                transitionText.text = message; // Set the transition message
+                Debug.Log("Transition text updated: " + message); // Debug the text
+            }
+
+            StartCoroutine(AnimateVignetteAndLoadScene(sceneName));
         }
     }
 
-    private System.Collections.IEnumerator AnimateVignetteAndLoadScene()
+    private System.Collections.IEnumerator AnimateVignetteAndLoadScene(string sceneName)
     {
         float duration = 1.5f; // Transition duration in seconds
         float elapsed = 0f;
 
+        // Fade the vignette intensity to full
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
@@ -65,7 +90,35 @@ public class VaultBuildingInteraction : MonoBehaviour
             yield return null;
         }
 
-        // Load the detailed Vault Avenue scene
-        SceneManager.LoadScene("VaultAvenueDetailedScene");
+        // Load the next scene
+        SceneManager.LoadScene(sceneName);
+
+        // Wait for the scene to load (small delay to ensure scene is ready)
+        yield return null;
+
+        // Reset elapsed time for fade-in
+        elapsed = 0f;
+
+        // Fade the vignette intensity back to zero
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float intensity = Mathf.Lerp(1, 0, elapsed / duration);
+            vignetteEffect.intensity.value = intensity;
+            yield return null;
+        }
+
+        // Ensure vignette effect is fully reset
+        vignetteEffect.intensity.value = 0;
+
+        // Hide the transition text
+        if (transitionTextObject != null)
+        {
+            transitionTextObject.SetActive(false); // Hide text GameObject after transition
+            Debug.Log("Transition text hidden.");
+        }
+
+        // Reset transition state
+        isTransitioning = false;
     }
 }

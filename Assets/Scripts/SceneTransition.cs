@@ -27,7 +27,7 @@ public class SceneTransition : MonoBehaviour
     public void FadeToScene(string sceneName, string message)
     {
         // Start the fade transition with the given scene name and message
-        Debug.Log("Starting fade to scene: " + sceneName);
+        Debug.Log($"Starting fade to scene: {sceneName}");
         StartCoroutine(FadeOutAndLoadScene(sceneName, message));
     }
 
@@ -35,14 +35,14 @@ public class SceneTransition : MonoBehaviour
     public void FadeToVaultAvenueScene()
     {
         Debug.Log("Proceeding to Vault Avenue...");
-        FadeToScene("VaultAvenueDetailedScene", "Loading Vault Avenue...");
+        FadeToScene("VaultAvenueDetailedScene", "Going to Vault Avenue...");
     }
 
     // Helper method for "Return Now" button to transition back to City Map
     public void FadeToCityMapScene()
     {
         Debug.Log("Returning to City Map...");
-        FadeToScene("CityMapScene", "Returning to City Map...");
+        FadeToScene("ModelsTest3", "Going to City Map...");
     }
 
     private IEnumerator FadeOutAndLoadScene(string sceneName, string message)
@@ -70,25 +70,38 @@ public class SceneTransition : MonoBehaviour
         }
         fadePanel.alpha = 1f; // Ensure it's fully opaque
 
-        // Log for debugging
-        Debug.Log("Fading completed. Loading scene: " + sceneName);
-
         // Load the scene
         SceneManager.LoadScene(sceneName);
 
-        // Wait for a frame to allow scene loading
+        // Wait for the next frame to ensure the scene loads properly
         yield return null;
 
-        // Fade back to transparent
+        // Reset the panel for the fade-in effect in the new scene
+        if (fadePanel != null)
+        {
+            fadePanel.alpha = 1f; // Ensure fully opaque at the start of fade-in
+            StartCoroutine(FadeInScene());
+        }
+    }
+
+    private IEnumerator FadeInScene()
+    {
+        float fadeDuration = 1.5f; // Adjust fade duration as needed
         for (float t = 0; t < fadeDuration; t += Time.deltaTime)
         {
             fadePanel.alpha = Mathf.Lerp(1f, 0f, t / fadeDuration);
             yield return null;
         }
-        fadePanel.alpha = 0f; // Ensure it's fully transparent
+        fadePanel.alpha = 0f; // Ensure fully transparent
 
         fadePanel.blocksRaycasts = false; // Allow interactions again
 
-        Debug.Log("Scene transition completed.");
+        // Clear the text after the fade-in completes
+        if (fadeText != null)
+        {
+            fadeText.text = "";
+        }
+
+        Debug.Log("Scene fade-in completed.");
     }
 }
