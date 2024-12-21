@@ -16,6 +16,10 @@ public class VaultBuildingInteraction : MonoBehaviour
     private Vignette vignetteEffect;    // Reference to the vignette effect
     private bool isTransitioning = false;
 
+    private float touchStartTime = 0f;  // Time when the touch starts
+    private bool isTouching = false;    // Flag to check if the touch is in progress
+    private const float quickTapThreshold = 0.3f; // Threshold time for a quick tap
+
     void Start()
     {
         // Ensure popup menu is hidden initially
@@ -42,14 +46,39 @@ public class VaultBuildingInteraction : MonoBehaviour
 
     void OnMouseDown()
     {
-        // When Vault Avenue building is clicked, show the pop-up menu
-        if (!isTransitioning) popupMenu.SetActive(true);
+        // Record the time when the mouse is pressed (or touch starts)
+        touchStartTime = Time.time;
+        isTouching = true;
+    }
+
+    void OnMouseUp()
+    {
+        // When the mouse is released (or touch ends)
+        if (isTouching)
+        {
+            float touchDuration = Time.time - touchStartTime;
+
+            // Check if it was a quick tap
+            if (touchDuration <= quickTapThreshold && !isTransitioning)
+            {
+                OpenPopup(); // Open the popup menu
+            }
+
+            // Reset the touch flag
+            isTouching = false;
+        }
+    }
+
+    private void OpenPopup()
+    {
+        Debug.Log("Popup menu opened on Vault Avenue object."); // Debug for verification
+        popupMenu.SetActive(true); // Show the popup menu
     }
 
     public void ClosePopup()
     {
-        // Close the pop-up menu
-        popupMenu.SetActive(false);
+        Debug.Log("Popup menu closed."); // Debug for verification
+        popupMenu.SetActive(false); // Close the popup menu
     }
 
     public void StartTransition(string sceneName, string message)
@@ -57,10 +86,6 @@ public class VaultBuildingInteraction : MonoBehaviour
         // Ensure the menu disappears before starting the vignette transition
         popupMenu.SetActive(false);
 
-        // Debug to check transition start
-        Debug.Log("StartTransition called: " + message);
-
-        // Start the vignette transition coroutine with a specific scene and message
         if (!isTransitioning)
         {
             isTransitioning = true;
@@ -69,7 +94,6 @@ public class VaultBuildingInteraction : MonoBehaviour
             {
                 transitionTextObject.SetActive(true); // Show the text GameObject
                 transitionText.text = message; // Set the transition message
-                Debug.Log("Transition text updated: " + message); // Debug the text
             }
 
             StartCoroutine(AnimateVignetteAndLoadScene(sceneName));
@@ -114,8 +138,7 @@ public class VaultBuildingInteraction : MonoBehaviour
         // Hide the transition text
         if (transitionTextObject != null)
         {
-            transitionTextObject.SetActive(false); // Hide text GameObject after transition
-            Debug.Log("Transition text hidden.");
+            transitionTextObject.SetActive(false);
         }
 
         // Reset transition state
