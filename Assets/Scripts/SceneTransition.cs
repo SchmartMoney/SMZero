@@ -1,71 +1,116 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using System.Collections;
 
 public class SceneTransition : MonoBehaviour
 {
-    public CanvasGroup fadePanel;       // The panel to fade in/out
-    public GameObject transitionText;  // The text GameObject to show during transitions
-    public float fadeDuration = 1.5f;  // Duration for the fade animation
+    // Public fields to assign in the Inspector
+    public CanvasGroup loadingScreen;    // The panel to fade in/out
+    public GameObject loadingScreenText; // The text to display during transitions
+    public Volume globalVolume;          // Post-Processing Global Volume for vignette control
+    public GameObject menu;              // The menu that should disappear on "Proceed"
 
+    public float fadeDuration = 1.5f;    // Duration for fade animations
+    private Vignette vignetteEffect;     // Reference to the vignette effect
+
+    /// <summary>
+    /// Initialize and configure components.
+    /// </summary>
     private void Start()
     {
-        // Ensure the fade panel starts fully transparent and transitionText is hidden
-        if (fadePanel != null)
+        // Ensure loading screen starts fully disabled
+        if (loadingScreen != null)
         {
-            fadePanel.alpha = 0f;
-            fadePanel.blocksRaycasts = false; // Allow interactions when transparent
+            loadingScreen.gameObject.SetActive(false);
+            loadingScreen.alpha = 0f;
         }
 
-        if (transitionText != null)
+        // Ensure the loading text is hidden initially
+        if (loadingScreenText != null)
         {
-            transitionText.SetActive(false); // Ensure the text is hidden at start
+            loadingScreenText.SetActive(false);
+        }
+
+        // Access the Vignette effect from Global Volume
+        if (globalVolume != null && globalVolume.profile.TryGet(out Vignette vignette))
+        {
+            vignetteEffect = vignette;
+            vignetteEffect.intensity.value = 0; // Set initial vignette intensity
+        }
+
+        // Ensure the menu is active at the start
+        if (menu != null)
+        {
+            menu.SetActive(true);
         }
     }
 
     /// <summary>
-    /// Method to transition to a scene by its build index.
+    /// Triggered when the Proceed button is clicked.
     /// </summary>
-    /// <param name="sceneIndex">The index of the scene in Build Settings.</param>
-    public void TransitionToScene(int sceneIndex)
+    /// <param name="sceneIndex">Index of the target scene in Build Settings.</param>
+    public void ProceedAndTransition(int sceneIndex)
     {
-        // Validate the scene index
-        if (sceneIndex < 0 || sceneIndex >= SceneManager.sceneCountInBuildSettings)
+        if (menu != null)
         {
-            Debug.LogError($"Invalid scene index: {sceneIndex}. Please verify Build Settings.");
-            return;
+            menu.SetActive(false); // Hide the menu when proceeding
         }
 
-        Debug.Log($"Starting transition to scene index {sceneIndex}");
+        // Enable the loading screen and text
+        if (loadingScreen != null)
+        {
+            loadingScreen.gameObject.SetActive(true);
+        }
+
+        if (loadingScreenText != null)
+        {
+            loadingScreenText.SetActive(false); // Initially hidden, will show after fade-in
+        }
+
         StartCoroutine(FadeOutAndLoadScene(sceneIndex));
     }
 
     private IEnumerator FadeOutAndLoadScene(int sceneIndex)
     {
-        if (fadePanel == null)
+        if (loadingScreen == null)
         {
-            Debug.LogError("Fade Panel is not assigned.");
+            Debug.LogError("Loading Screen (CanvasGroup) is not assigned.");
             yield break;
         }
 
-        fadePanel.blocksRaycasts = true; // Block interactions during the fade
+        loadingScreen.blocksRaycasts = true; // Block interactions during fade
 
-        // Activate the transition text if available
-        if (transitionText != null)
-        {
-            transitionText.SetActive(true);
-        }
-
-        // Fade to black
+        // Fade in the loading screen and increase vignette intensity
         for (float t = 0; t < fadeDuration; t += Time.deltaTime)
         {
-            fadePanel.alpha = Mathf.Lerp(0f, 1f, t / fadeDuration);
+            float normalizedTime = t / fadeDuration;
+
+            // Animate loading screen alpha
+            loadingScreen.alpha = Mathf.Lerp(0f, 1f, normalizedTime);
+
+            // Animate vignette intensity
+            if (vignetteEffect != null)
+            {
+                vignetteEffect.intensity.value = Mathf.Lerp(0f, 1f, normalizedTime);
+            }
+
             yield return null;
         }
-        fadePanel.alpha = 1f; // Ensure it's fully opaque
 
-        // Log the scene index being loaded
-        Debug.Log($"Loading scene index: {sceneIndex} ({SceneManager.GetSceneByBuildIndex(sceneIndex).name})");
+        // Ensure fully opaque and vignette at max intensity
+        loadingScreen.alpha = 1f;
+        if (vignetteEffect != null) vignetteEffect.intensity.value = 1f;
+
+        // Display loading screen text after fade-in
+        if (loadingScreenText != null)
+        {
+            loadingScreenText.SetActive(true);
+        }
+
+        // Wait for 2 seconds to simulate loading condition
+        yield return new WaitForSeconds(2f);
 
         // Load the new scene
         AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneIndex);
@@ -82,17 +127,35 @@ public class SceneTransition : MonoBehaviour
     {
         for (float t = 0; t < fadeDuration; t += Time.deltaTime)
         {
-            fadePanel.alpha = Mathf.Lerp(1f, 0f, t / fadeDuration);
+            float normalizedTime = t / fadeDuration;
+
+            // Animate loading screen alpha
+            loadingScreen.alpha = Mathf.Lerp(1f, 0f, normalizedTime);
+
+            // Animate vignette intensity
+            if (vignetteEffect != null)
+            {
+                vignetteEffect.intensity.value = Mathf.Lerp(1f, 0f, normalizedTime);
+            }
+
             yield return null;
         }
-        fadePanel.alpha = 0f; // Ensure it's fully transparent
 
-        fadePanel.blocksRaycasts = false; // Allow interactions again
+        // Ensure fully transparent and vignette intensity reset
+        loadingScreen.alpha = 0f;
+        if (vignetteEffect != null) vignetteEffect.intensity.value = 0f;
 
-        // Deactivate the transition text after the fade-in
-        if (transitionText != null)
+        loadingScreen.blocksRaycasts = false; // Allow interactions again
+
+        // Deactivate loading screen and text
+        if (loadingScreen != null)
         {
-            transitionText.SetActive(false);
+            loadingScreen.gameObject.SetActive(false);
+        }
+
+        if (loadingScreenText != null)
+        {
+            loadingScreenText.SetActive(false);
         }
 
         Debug.Log("Scene fade-in completed.");
