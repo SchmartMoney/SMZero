@@ -37,13 +37,18 @@ public class SceneTransition : MonoBehaviour
         if (globalVolume != null && globalVolume.profile.TryGet(out Vignette vignette))
         {
             vignetteEffect = vignette;
-            vignetteEffect.intensity.value = 0; // Set initial vignette intensity
         }
 
         // Ensure the menu is active at the start
         if (menu != null)
         {
             menu.SetActive(true);
+        }
+
+        // Ensure vignette starts at full intensity immediately when the scene is loaded
+        if (vignetteEffect != null)
+        {
+            vignetteEffect.intensity.value = 1f;
         }
     }
 
@@ -90,10 +95,10 @@ public class SceneTransition : MonoBehaviour
             // Animate loading screen alpha
             loadingScreen.alpha = Mathf.Lerp(0f, 1f, normalizedTime);
 
-            // Animate vignette intensity
+            // Animate vignette intensity (if needed)
             if (vignetteEffect != null)
             {
-                vignetteEffect.intensity.value = Mathf.Lerp(0f, 1f, normalizedTime);
+                vignetteEffect.intensity.value = Mathf.Lerp(1f, 1f, normalizedTime); // Keep it at max
             }
 
             yield return null;
@@ -132,7 +137,7 @@ public class SceneTransition : MonoBehaviour
             // Animate loading screen alpha
             loadingScreen.alpha = Mathf.Lerp(1f, 0f, normalizedTime);
 
-            // Animate vignette intensity
+            // Animate vignette intensity (fade out)
             if (vignetteEffect != null)
             {
                 vignetteEffect.intensity.value = Mathf.Lerp(1f, 0f, normalizedTime);
