@@ -18,7 +18,7 @@ MonoBehaviour:
     m_Value: {r: 0, g: 0, b: 0, a: 1}
   center:
     m_OverrideState: 1
-    m_Value: {x: 0, y: -1.33}
+    m_Value: {x: 0, y: -2}
   intensity:
     m_OverrideState: 1
     m_Value: 0
