@@ -23,14 +23,20 @@ public class VaultBuildingInteraction : MonoBehaviour
     void Start()
     {
         // Ensure popup menu is hidden initially
-        popupMenu.SetActive(false);
+        if (popupMenu != null)
+        {
+            popupMenu.SetActive(false);
+        }
 
         // Add listeners to buttons
-        cancelButton.onClick.AddListener(ClosePopup);
-        proceedButton.onClick.AddListener(() => StartTransition("VaultAvenueDetailedScene", "Going to Vault Avenue..."));
+        if (cancelButton != null)
+            cancelButton.onClick.AddListener(ClosePopup);
+
+        if (proceedButton != null)
+            proceedButton.onClick.AddListener(() => StartTransition("ModelsTest3", "Loading Models Test Scene..."));
 
         // Access the Vignette effect from Global Volume
-        if (globalVolume.profile.TryGet(out Vignette vignette))
+        if (globalVolume != null && globalVolume.profile.TryGet(out Vignette vignette))
         {
             vignetteEffect = vignette;
             vignetteEffect.intensity.value = 0; // Initial vignette intensity
@@ -42,58 +48,66 @@ public class VaultBuildingInteraction : MonoBehaviour
             transitionText = transitionTextObject.GetComponent<TMP_Text>();
             transitionTextObject.SetActive(false); // Hide text GameObject at the start
         }
+
+        // Start a fade-out effect if this is the VaultAvenueDetailedScene
+        if (SceneManager.GetActiveScene().name == "VaultAvenueDetailedScene")
+        {
+            StartCoroutine(FadeOutVignetteQuickly());
+        }
     }
 
     void OnMouseDown()
     {
-        // Record the time when the mouse is pressed (or touch starts)
         touchStartTime = Time.time;
         isTouching = true;
     }
 
     void OnMouseUp()
     {
-        // When the mouse is released (or touch ends)
         if (isTouching)
         {
             float touchDuration = Time.time - touchStartTime;
 
-            // Check if it was a quick tap
             if (touchDuration <= quickTapThreshold && !isTransitioning)
             {
-                OpenPopup(); // Open the popup menu
+                OpenPopup();
             }
 
-            // Reset the touch flag
             isTouching = false;
         }
     }
 
     private void OpenPopup()
     {
-        Debug.Log("Popup menu opened on Vault Avenue object."); // Debug for verification
-        popupMenu.SetActive(true); // Show the popup menu
+        if (popupMenu != null)
+        {
+            Debug.Log("Popup menu opened.");
+            popupMenu.SetActive(true);
+        }
     }
 
     public void ClosePopup()
     {
-        Debug.Log("Popup menu closed."); // Debug for verification
-        popupMenu.SetActive(false); // Close the popup menu
+        if (popupMenu != null)
+        {
+            Debug.Log("Popup menu closed.");
+            popupMenu.SetActive(false);
+        }
     }
 
     public void StartTransition(string sceneName, string message)
     {
-        // Ensure the menu disappears before starting the vignette transition
-        popupMenu.SetActive(false);
-
         if (!isTransitioning)
         {
             isTransitioning = true;
 
+            if (popupMenu != null)
+                popupMenu.SetActive(false);
+
             if (transitionTextObject != null && transitionText != null)
             {
-                transitionTextObject.SetActive(true); // Show the text GameObject
-                transitionText.text = message; // Set the transition message
+                transitionTextObject.SetActive(true);
+                transitionText.text = message;
             }
 
             StartCoroutine(AnimateVignetteAndLoadScene(sceneName));
@@ -102,10 +116,9 @@ public class VaultBuildingInteraction : MonoBehaviour
 
     private System.Collections.IEnumerator AnimateVignetteAndLoadScene(string sceneName)
     {
-        float duration = 1.5f; // Transition duration in seconds
+        float duration = 1.5f;
         float elapsed = 0f;
 
-        // Fade the vignette intensity to full
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
@@ -114,16 +127,14 @@ public class VaultBuildingInteraction : MonoBehaviour
             yield return null;
         }
 
-        // Load the next scene
         SceneManager.LoadScene(sceneName);
+    }
 
-        // Wait for the scene to load (small delay to ensure scene is ready)
-        yield return null;
+    private System.Collections.IEnumerator FadeOutVignetteQuickly()
+    {
+        float duration = 0.5f; // Short fade-out duration
+        float elapsed = 0f;
 
-        // Reset elapsed time for fade-in
-        elapsed = 0f;
-
-        // Fade the vignette intensity back to zero
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
@@ -132,16 +143,6 @@ public class VaultBuildingInteraction : MonoBehaviour
             yield return null;
         }
 
-        // Ensure vignette effect is fully reset
         vignetteEffect.intensity.value = 0;
-
-        // Hide the transition text
-        if (transitionTextObject != null)
-        {
-            transitionTextObject.SetActive(false);
-        }
-
-        // Reset transition state
-        isTransitioning = false;
     }
 }

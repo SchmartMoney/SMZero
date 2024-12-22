@@ -2,106 +2,140 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
+using UnityEngine.Rendering; // For Volume
+using UnityEngine.Rendering.Universal; // For URP-specific effects
 using System.Collections;
 
 public class SceneTransition : MonoBehaviour
 {
-    public CanvasGroup fadePanel;       // The panel to fade in/out (set to 100% black in the Inspector)
-    public TMP_Text fadeText;           // The text element for messages during transitions
+    public CanvasGroup fadePanel; // Panel for fade effect
+    public TMP_Text fadeText;     // Text for messages during transitions
+    public float fadeDuration = 1.5f; // Duration of fade effect
+
+    public Volume globalVolume; // Reference to Global Volume
+    private Vignette vignette; // Vignette effect
+
+    [Header("Default Loading Message Settings")]
+    [TextArea]
+    public string defaultTransitionMessage = "Loading...";
+    public Color textColor = Color.white;      // Default text color
+    public int fontSize = 36;                  // Default text size
+    public Vector2 textPosition = new Vector2(0, -200); // Default text position (relative to the canvas center)
 
     private void Start()
     {
-        // Ensure the panel starts fully transparent and disabled
+        // Initialize fade panel
         if (fadePanel != null)
         {
             fadePanel.alpha = 0f;
             fadePanel.blocksRaycasts = false;
         }
 
+        // Initialize fade text appearance
         if (fadeText != null)
         {
-            fadeText.text = ""; // Clear any text
+            fadeText.text = "";
+            fadeText.color = textColor;
+            fadeText.fontSize = fontSize;
+            fadeText.rectTransform.anchoredPosition = textPosition;
+        }
+
+        // Retrieve Vignette from the Global Volume
+        if (globalVolume != null && globalVolume.profile != null)
+        {
+            if (globalVolume.profile.TryGet<Vignette>(out var vignetteEffect))
+            {
+                vignette = vignetteEffect;
+                vignette.intensity.Override(0f); // Start with vignette disabled
+            }
+            else
+            {
+                Debug.LogError("No Vignette override found in the Global Volume profile.");
+            }
+        }
+        else
+        {
+            Debug.LogError("Global Volume or its profile is not assigned.");
         }
     }
 
-    public void FadeToScene(string sceneName, string message)
+    public void FadeToScene(string sceneName, string transitionMessage = null)
     {
-        // Start the fade transition with the given scene name and message
-        Debug.Log($"Starting fade to scene: {sceneName}");
-        StartCoroutine(FadeOutAndLoadScene(sceneName, message));
-    }
-
-    // Helper method for "Proceed" button to transition to Vault Avenue
-    public void FadeToVaultAvenueScene()
-    {
-        Debug.Log("Proceeding to Vault Avenue...");
-        FadeToScene("VaultAvenueDetailedScene", "Going to Vault Avenue...");
-    }
-
-    // Helper method for "Return Now" button to transition back to City Map
-    public void FadeToCityMapScene()
-    {
-        Debug.Log("Returning to City Map...");
-        FadeToScene("ModelsTest3", "Going to City Map...");
+        string messageToShow = string.IsNullOrEmpty(transitionMessage) ? defaultTransitionMessage : transitionMessage;
+        StartCoroutine(FadeOutAndLoadScene(sceneName, messageToShow));
     }
 
     private IEnumerator FadeOutAndLoadScene(string sceneName, string message)
     {
-        if (fadePanel == null)
-        {
-            Debug.LogError("Fade Panel is not assigned.");
-            yield break;
-        }
+        fadePanel.blocksRaycasts = true;
 
-        fadePanel.blocksRaycasts = true; // Block interactions during the fade
-
-        // Display the message (if provided)
+        // Set transition message
         if (fadeText != null)
         {
             fadeText.text = message;
         }
 
-        // Fade to black
-        float fadeDuration = 1.5f; // Adjust fade duration as needed
+        // Enable vignette
+        if (vignette != null)
+        {
+            StartCoroutine(AdjustVignette(true));
+        }
+
+        // Fade out
         for (float t = 0; t < fadeDuration; t += Time.deltaTime)
         {
             fadePanel.alpha = Mathf.Lerp(0f, 1f, t / fadeDuration);
             yield return null;
         }
-        fadePanel.alpha = 1f; // Ensure it's fully opaque
+        fadePanel.alpha = 1f;
 
-        // Load the scene
+        // Load the new scene
         SceneManager.LoadScene(sceneName);
 
-        // Wait for the next frame to ensure the scene loads properly
+        // Wait a frame to ensure the scene loads
         yield return null;
 
-        // Reset the panel for the fade-in effect in the new scene
-        if (fadePanel != null)
-        {
-            fadePanel.alpha = 1f; // Ensure fully opaque at the start of fade-in
-            StartCoroutine(FadeInScene());
-        }
+        // Start fade-in
+        StartCoroutine(FadeInScene());
     }
 
     private IEnumerator FadeInScene()
     {
-        float fadeDuration = 1.5f; // Adjust fade duration as needed
+        // Fade in
         for (float t = 0; t < fadeDuration; t += Time.deltaTime)
         {
             fadePanel.alpha = Mathf.Lerp(1f, 0f, t / fadeDuration);
             yield return null;
         }
-        fadePanel.alpha = 0f; // Ensure fully transparent
+        fadePanel.alpha = 0f;
+        fadePanel.blocksRaycasts = false;
 
-        fadePanel.blocksRaycasts = false; // Allow interactions again
+        // Disable vignette
+        if (vignette != null)
+        {
+            StartCoroutine(AdjustVignette(false));
+        }
 
-        // Clear the text after the fade-in completes
+        // Clear transition message
         if (fadeText != null)
         {
             fadeText.text = "";
         }
+    }
 
-        Debug.Log("Scene fade-in completed.");
+    private IEnumerator AdjustVignette(bool enable)
+    {
+        if (vignette == null) yield break;
+
+        float targetIntensity = enable ? 0.5f : 0f; // Adjust the vignette intensity
+        float initialIntensity = vignette.intensity.value;
+
+        for (float t = 0; t < fadeDuration; t += Time.deltaTime)
+        {
+            vignette.intensity.Override(Mathf.Lerp(initialIntensity, targetIntensity, t / fadeDuration));
+            yield return null;
+        }
+
+        vignette.intensity.Override(targetIntensity);
     }
 }
