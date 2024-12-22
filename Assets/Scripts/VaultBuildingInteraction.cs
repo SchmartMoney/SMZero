@@ -28,6 +28,10 @@ public class VaultBuildingInteraction : MonoBehaviour
         {
             cancelButton.onClick.AddListener(ClosePopup);
         }
+        else
+        {
+            Debug.LogWarning("Cancel button is not assigned in the inspector.");
+        }
 
         // Access the Vignette effect from Global Volume
         if (globalVolume != null && globalVolume.profile.TryGet(out Vignette vignette))
@@ -69,10 +73,15 @@ public class VaultBuildingInteraction : MonoBehaviour
 
     public void ClosePopup()
     {
+        Debug.Log("Attempting to close the popup menu.");
         if (popupMenu != null)
         {
-            Debug.Log("Popup menu closed.");
             popupMenu.SetActive(false);
+            Debug.Log("Popup menu closed.");
+        }
+        else
+        {
+            Debug.LogError("Popup menu is not assigned.");
         }
     }
 }
