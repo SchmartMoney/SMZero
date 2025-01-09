@@ -9,7 +9,11 @@ public class LocationInteraction : MonoBehaviour
     [SerializeField] private LocationUIData uiData;
     
     [Header("State Settings")]
-    [SerializeField] private bool isActive = false;  // New field for active state
+    [SerializeField] private bool isActive = false;
+
+    [Header("Colors")]
+    [SerializeField] private Color activeColor = Color.yellow;
+    [SerializeField] private Color inactiveColor = Color.grey;
 
     private LocationHighlight highlight;
     private LocationPopupUI popupUI;
@@ -34,8 +38,8 @@ public class LocationInteraction : MonoBehaviour
         bool canInteract = isActive && locationData.isInteractable;
         highlight.SetInteractable(canInteract);
         
-        // Set color based on active state
-        highlight.SetHighlightColor(isActive ? Color.yellow : Color.grey);
+        // Set color based on interactable state
+        highlight.SetHighlightColor(canInteract ? activeColor : inactiveColor);
     }
 
     public void SetActive(bool active)
@@ -52,7 +56,8 @@ public class LocationInteraction : MonoBehaviour
     private void HandleInteraction()
     {
         // Check both active state and interactable state
-        if (!isActive || !locationData.isInteractable)
+        bool canInteract = isActive && locationData.isInteractable;
+        if (!canInteract)
         {
             Debug.Log($"Location {locationData.displayName} is not available for interaction");
             return;

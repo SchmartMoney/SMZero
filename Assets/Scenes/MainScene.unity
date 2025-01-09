@@ -20497,7 +20497,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 342933917}
-  - component: {fileID: 342933918}
   m_Layer: 0
   m_Name: ST
   m_TagString: Untagged
@@ -20521,18 +20520,6 @@ Transform:
   - {fileID: 1722705472}
   m_Father: {fileID: 1666833226}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &342933918
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 342933916}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2b54696283ac9944a9848e1261eec5f8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &343327908
 GameObject:
   m_ObjectHideFlags: 0
@@ -27601,6 +27588,12 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: 2509cc5763ca17f4598bf61fd585a93e,
     type: 3}
   m_PrefabInstance: {fileID: 1464465731}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &488135638 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6689036041284674117, guid: 639599ee8cff0bf479940b8b4e112655,
+    type: 3}
+  m_PrefabInstance: {fileID: 1824820393}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &488321484 stripped
 Transform:
@@ -94381,6 +94374,65 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1824820393}
   m_PrefabAsset: {fileID: 0}
+--- !u!65 &1722705473
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 488135638}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 100, y: 200, z: 100}
+  m_Center: {x: 0, y: 0, z: 47.88}
+--- !u!114 &1722705474
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 488135638}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 319b8284c06044d4f83b9494b7f82ed6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  locationData:
+    locationId: skylift_terminal
+    displayName: Skylift Terminal
+    description: desc
+    sceneToLoad: 
+    isInteractable: 0
+  uiData:
+    title: Skylift Terminal
+    description: desc
+    showEnterButton: 1
+    showLeaveButton: 1
+  isActive: 0
+  activeColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+--- !u!114 &1722705475
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 488135638}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b54696283ac9944a9848e1261eec5f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1723304747
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -99137,14 +99189,29 @@ MonoBehaviour:
     locationId: VA
     displayName: Vault Avenue
     description: Enter to manage your vault and NFTs
-    sceneToLoad: VaultScene
+    sceneToLoad: VaultAvenueDetailedScene
     isInteractable: 1
   uiData:
     title: Vault Avenue
     description: Manage your vault and NFTs here.\nStake NFTs to earn fortune.
     showEnterButton: 1
     showLeaveButton: 1
+  isActive: 1
+  activeColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
 --- !u!114 &1777978226
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1777978215}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b54696283ac9944a9848e1261eec5f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1777978229
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -102163,7 +102230,19 @@ PrefabInstance:
     - {fileID: -6485989276788565255, guid: 639599ee8cff0bf479940b8b4e112655, type: 3}
     - {fileID: -4088344951310905257, guid: 639599ee8cff0bf479940b8b4e112655, type: 3}
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6689036041284674117, guid: 639599ee8cff0bf479940b8b4e112655,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1722705475}
+    - targetCorrespondingSourceObject: {fileID: -6689036041284674117, guid: 639599ee8cff0bf479940b8b4e112655,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1722705474}
+    - targetCorrespondingSourceObject: {fileID: -6689036041284674117, guid: 639599ee8cff0bf479940b8b4e112655,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1722705473}
   m_SourcePrefab: {fileID: -5645937942226959685, guid: 639599ee8cff0bf479940b8b4e112655,
     type: 3}
 --- !u!4 &1825011105 stripped
@@ -123351,6 +123430,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1777978225}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b93d76e8c70d8d147894772e5841efef,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1777978229}
   m_SourcePrefab: {fileID: 100100000, guid: b93d76e8c70d8d147894772e5841efef, type: 3}
 --- !u!4 &2127579849 stripped
 Transform:
