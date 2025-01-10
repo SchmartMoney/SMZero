@@ -15674,8 +15674,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   locationData:
-    locationId: 
-    displayName: 
+    locationId: harbourwatch_wharf
+    displayName: Harbourwatch Wharf
     description: 
     sceneToLoad: 
     isInteractable: 0
@@ -29446,7 +29446,19 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 0051785c7c4452347aee4914ee5c2d76,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1888233423}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 0051785c7c4452347aee4914ee5c2d76,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1888233422}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 0051785c7c4452347aee4914ee5c2d76,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1888233421}
   m_SourcePrefab: {fileID: 100100000, guid: 0051785c7c4452347aee4914ee5c2d76, type: 3}
 --- !u!1001 &505515175
 PrefabInstance:
@@ -36095,6 +36107,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 641164778}
+  - component: {fileID: 641164781}
+  - component: {fileID: 641164780}
+  - component: {fileID: 641164779}
   m_Layer: 0
   m_Name: 01. Hearthside Haven
   m_TagString: Untagged
@@ -36232,6 +36247,65 @@ Transform:
   - {fileID: 1704715905}
   m_Father: {fileID: 970904521}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &641164779
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 641164777}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 319b8284c06044d4f83b9494b7f82ed6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  locationData:
+    locationId: hearthside_haven
+    displayName: Hearthside Haven
+    description: 
+    sceneToLoad: 
+    isInteractable: 0
+  uiData:
+    title: Hearthside Haven
+    description: 
+    showEnterButton: 1
+    showLeaveButton: 1
+  isActive: 0
+  activeColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+--- !u!114 &641164780
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 641164777}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b54696283ac9944a9848e1261eec5f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!65 &641164781
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 641164777}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 30.3, y: 23.8, z: 32.6}
+  m_Center: {x: -17.7, y: -98.97, z: -17.15}
 --- !u!4 &641897722 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: 0ee6d569ec3227e40888e8151b331e0f,
@@ -47529,7 +47603,19 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 067fa33f297c19c4e849788344d613aa,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1737229931}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 067fa33f297c19c4e849788344d613aa,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1737229930}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 067fa33f297c19c4e849788344d613aa,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1737229929}
   m_SourcePrefab: {fileID: 100100000, guid: 067fa33f297c19c4e849788344d613aa, type: 3}
 --- !u!4 &865638117 stripped
 Transform:
@@ -81089,6 +81175,71 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1034654963}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1559416618 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6689036041284674117, guid: cce0da2803c71a640859dcf669e9b548,
+    type: 3}
+  m_PrefabInstance: {fileID: 2078098014}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1559416619
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1559416618}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 319b8284c06044d4f83b9494b7f82ed6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  locationData:
+    locationId: bureaucracy_bend
+    displayName: Bureaucracy Bend
+    description: 
+    sceneToLoad: 
+    isInteractable: 0
+  uiData:
+    title: Bureaucracy Bend
+    description: 
+    showEnterButton: 1
+    showLeaveButton: 1
+  isActive: 0
+  activeColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+--- !u!114 &1559416620
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1559416618}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b54696283ac9944a9848e1261eec5f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!65 &1559416621
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1559416618}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 110.3, y: 149.1, z: 54.5}
+  m_Center: {x: -1.3, y: -6.2, z: 28}
 --- !u!4 &1562807392 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: b8ee657c6800ab849bb30b4375d02323,
@@ -95148,6 +95299,71 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1737076111}
   m_Mesh: {fileID: 4300000, guid: a4051385261ccbb45a4060203fd8d66e, type: 3}
+--- !u!1 &1737229928 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 067fa33f297c19c4e849788344d613aa,
+    type: 3}
+  m_PrefabInstance: {fileID: 865298936}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1737229929
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1737229928}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 319b8284c06044d4f83b9494b7f82ed6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  locationData:
+    locationId: justice_crossroads
+    displayName: Justice Crossroads
+    description: 
+    sceneToLoad: 
+    isInteractable: 0
+  uiData:
+    title: Justice Crossroads
+    description: 
+    showEnterButton: 1
+    showLeaveButton: 1
+  isActive: 0
+  activeColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+--- !u!114 &1737229930
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1737229928}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b54696283ac9944a9848e1261eec5f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!65 &1737229931
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1737229928}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 25.6, y: 40.67, z: 25.5}
+  m_Center: {x: 0, y: 13.58, z: 0}
 --- !u!4 &1737362124 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: 288b117258616aa4f928ba6f91dc47c3,
@@ -106066,6 +106282,71 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2d5fb229ae2945742b900a405a5e7a0b, type: 3}
+--- !u!1 &1888233420 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 0051785c7c4452347aee4914ee5c2d76,
+    type: 3}
+  m_PrefabInstance: {fileID: 502734136}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1888233421
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1888233420}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 319b8284c06044d4f83b9494b7f82ed6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  locationData:
+    locationId: ambition_alley
+    displayName: Ambition Alley
+    description: 
+    sceneToLoad: 
+    isInteractable: 0
+  uiData:
+    title: Ambition Alley
+    description: 
+    showEnterButton: 1
+    showLeaveButton: 1
+  isActive: 0
+  activeColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+--- !u!114 &1888233422
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1888233420}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b54696283ac9944a9848e1261eec5f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!65 &1888233423
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1888233420}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 72.01, y: 30, z: 31.72}
+  m_Center: {x: -11.6, y: 13.9, z: -10.1}
 --- !u!1001 &1888618584
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -107586,7 +107867,9 @@ GameObject:
   - component: {fileID: 1929899161}
   - component: {fileID: 1929899160}
   - component: {fileID: 1929899159}
-  - component: {fileID: 1929899158}
+  - component: {fileID: 1929899163}
+  - component: {fileID: 1929899162}
+  - component: {fileID: 1929899164}
   m_Layer: 0
   m_Name: Prototype TS
   m_TagString: Untagged
@@ -107594,29 +107877,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 2147483647
   m_IsActive: 1
---- !u!136 &1929899158
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1929899157}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5000001
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
 --- !u!23 &1929899159
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -107693,6 +107953,65 @@ Transform:
   - {fileID: 2116868913}
   m_Father: {fileID: 1182809970}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1929899162
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1929899157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 319b8284c06044d4f83b9494b7f82ed6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  locationData:
+    locationId: twilight_square
+    displayName: Twilight Square
+    description: 
+    sceneToLoad: 
+    isInteractable: 0
+  uiData:
+    title: Twilight Square
+    description: 
+    showEnterButton: 1
+    showLeaveButton: 1
+  isActive: 0
+  activeColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+--- !u!114 &1929899163
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1929899157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b54696283ac9944a9848e1261eec5f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!65 &1929899164
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1929899157}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.09, y: 17.13, z: 1.0000002}
+  m_Center: {x: 0.000000059604645, y: -0.00000023841858, z: -0.0000005662441}
 --- !u!1 &1929974778
 GameObject:
   m_ObjectHideFlags: 0
@@ -116110,7 +116429,19 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6689036041284674117, guid: cce0da2803c71a640859dcf669e9b548,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1559416621}
+    - targetCorrespondingSourceObject: {fileID: -6689036041284674117, guid: cce0da2803c71a640859dcf669e9b548,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1559416620}
+    - targetCorrespondingSourceObject: {fileID: -6689036041284674117, guid: cce0da2803c71a640859dcf669e9b548,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1559416619}
   m_SourcePrefab: {fileID: -5645937942226959685, guid: cce0da2803c71a640859dcf669e9b548,
     type: 3}
 --- !u!1 &2078367378

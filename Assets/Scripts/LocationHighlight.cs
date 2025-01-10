@@ -4,12 +4,48 @@ public class LocationHighlight : MonoBehaviour
 {
     private Material[] materials;
     private Color[] defaultColors;
+    private bool[] canModifyColor;  // Track which materials can have their color modified
     private bool isInteractable = false;
     private bool isInitialized = false;
 
     private void Awake()
     {
         InitializeHighlight();
+    }
+
+    private bool HasColorProperty(Material material)
+    {
+        // Check for common color property names
+        return material.HasProperty("_Color") || 
+               material.HasProperty("_BaseColor") || 
+               material.HasProperty("_MainColor") ||
+               material.HasProperty("_EmissionColor");
+    }
+
+    private void SetMaterialColor(Material material, Color color)
+    {
+        if (material.HasProperty("_Color"))
+            material.SetColor("_Color", color);
+        else if (material.HasProperty("_BaseColor"))
+            material.SetColor("_BaseColor", color);
+        else if (material.HasProperty("_MainColor"))
+            material.SetColor("_MainColor", color);
+        else if (material.HasProperty("_EmissionColor"))
+            material.SetColor("_EmissionColor", color);
+    }
+
+    private Color GetMaterialColor(Material material)
+    {
+        if (material.HasProperty("_Color"))
+            return material.GetColor("_Color");
+        else if (material.HasProperty("_BaseColor"))
+            return material.GetColor("_BaseColor");
+        else if (material.HasProperty("_MainColor"))
+            return material.GetColor("_MainColor");
+        else if (material.HasProperty("_EmissionColor"))
+            return material.GetColor("_EmissionColor");
+        
+        return Color.white; // Default color if no supported property found
     }
 
     private void InitializeHighlight()
@@ -25,6 +61,7 @@ public class LocationHighlight : MonoBehaviour
             // Initialize arrays to store materials and their default colors
             materials = new Material[renderers.Length];
             defaultColors = new Color[renderers.Length];
+            canModifyColor = new bool[renderers.Length];
 
             // Store each renderer's material and default color
             for (int i = 0; i < renderers.Length; i++)
@@ -34,8 +71,16 @@ public class LocationHighlight : MonoBehaviour
                     materials[i] = renderers[i].material;
                     if (materials[i] != null)
                     {
-                        defaultColors[i] = materials[i].color;
-                        Debug.Log($"[LocationHighlight] {gameObject.name}: Initialized material {i} with color {defaultColors[i]}");
+                        canModifyColor[i] = HasColorProperty(materials[i]);
+                        if (canModifyColor[i])
+                        {
+                            defaultColors[i] = GetMaterialColor(materials[i]);
+                            Debug.Log($"[LocationHighlight] {gameObject.name}: Initialized material {i} ({materials[i].name}) with color {defaultColors[i]}");
+                        }
+                        else
+                        {
+                            Debug.Log($"[LocationHighlight] {gameObject.name}: Material {i} ({materials[i].name}) doesn't support color modification");
+                        }
                     }
                 }
             }
@@ -60,9 +105,9 @@ public class LocationHighlight : MonoBehaviour
         {
             for (int i = 0; i < materials.Length; i++)
             {
-                if (materials[i] != null)
+                if (materials[i] != null && canModifyColor[i])
                 {
-                    materials[i].color = color;
+                    SetMaterialColor(materials[i], color);
                     defaultColors[i] = color;
                 }
             }
@@ -84,11 +129,11 @@ public class LocationHighlight : MonoBehaviour
         Debug.Log($"[LocationHighlight] {gameObject.name}: OnMouseEnter (isInteractable: {isInteractable})");
         if (!isInteractable || materials == null) return;
         
-        foreach (Material material in materials)
+        for (int i = 0; i < materials.Length; i++)
         {
-            if (material != null)
+            if (materials[i] != null && canModifyColor[i])
             {
-                material.color = Color.white; // Highlight color when mouse is over
+                SetMaterialColor(materials[i], Color.white); // Highlight color when mouse is over
             }
         }
     }
@@ -100,9 +145,9 @@ public class LocationHighlight : MonoBehaviour
         
         for (int i = 0; i < materials.Length; i++)
         {
-            if (materials[i] != null)
+            if (materials[i] != null && canModifyColor[i])
             {
-                materials[i].color = defaultColors[i]; // Return to default color
+                SetMaterialColor(materials[i], defaultColors[i]); // Return to default color
             }
         }
     }
