@@ -5,9 +5,17 @@ public class LocationHighlight : MonoBehaviour
     private Material[] materials;
     private Color[] defaultColors;
     private bool isInteractable = false;
+    private bool isInitialized = false;
 
     private void Awake()
     {
+        InitializeHighlight();
+    }
+
+    private void InitializeHighlight()
+    {
+        if (isInitialized) return;
+
         // Get all renderers in this object and its children
         Renderer[] renderers = GetComponentsInChildren<Renderer>();
         Debug.Log($"[LocationHighlight] {gameObject.name}: Found {renderers?.Length ?? 0} renderers");
@@ -21,10 +29,17 @@ public class LocationHighlight : MonoBehaviour
             // Store each renderer's material and default color
             for (int i = 0; i < renderers.Length; i++)
             {
-                materials[i] = renderers[i].material;
-                defaultColors[i] = materials[i].color;
-                Debug.Log($"[LocationHighlight] {gameObject.name}: Renderer[{i}] = {renderers[i].gameObject.name}, Material = {materials[i].name}");
+                if (renderers[i] != null)
+                {
+                    materials[i] = renderers[i].material;
+                    if (materials[i] != null)
+                    {
+                        defaultColors[i] = materials[i].color;
+                        Debug.Log($"[LocationHighlight] {gameObject.name}: Initialized material {i} with color {defaultColors[i]}");
+                    }
+                }
             }
+            isInitialized = true;
         }
         else
         {
@@ -34,9 +49,15 @@ public class LocationHighlight : MonoBehaviour
 
     public void SetHighlightColor(Color color)
     {
-        if (materials != null)
+        if (!isInitialized)
         {
-            Debug.Log($"[LocationHighlight] {gameObject.name}: Setting highlight color to {color}");
+            InitializeHighlight();
+        }
+
+        Debug.Log($"[LocationHighlight] {gameObject.name}: Setting highlight color to {color}");
+        
+        if (materials != null && materials.Length > 0)
+        {
             for (int i = 0; i < materials.Length; i++)
             {
                 if (materials[i] != null)
@@ -45,6 +66,10 @@ public class LocationHighlight : MonoBehaviour
                     defaultColors[i] = color;
                 }
             }
+        }
+        else
+        {
+            Debug.LogError($"[LocationHighlight] {gameObject.name}: No materials found to set color!");
         }
     }
 
@@ -58,6 +83,7 @@ public class LocationHighlight : MonoBehaviour
     {
         Debug.Log($"[LocationHighlight] {gameObject.name}: OnMouseEnter (isInteractable: {isInteractable})");
         if (!isInteractable || materials == null) return;
+        
         foreach (Material material in materials)
         {
             if (material != null)
@@ -71,6 +97,7 @@ public class LocationHighlight : MonoBehaviour
     {
         Debug.Log($"[LocationHighlight] {gameObject.name}: OnMouseExit (isInteractable: {isInteractable})");
         if (!isInteractable || materials == null) return;
+        
         for (int i = 0; i < materials.Length; i++)
         {
             if (materials[i] != null)

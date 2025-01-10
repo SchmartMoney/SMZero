@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(LocationHighlight))]
+[RequireComponent(typeof(Collider))]
 public class LocationInteraction : MonoBehaviour
 {
     [Header("Location Settings")]
@@ -28,6 +29,12 @@ public class LocationInteraction : MonoBehaviour
             Debug.LogError("LocationPopupUI not found in scene!");
         }
 
+        // Ensure we have required components
+        if (GetComponent<Collider>() == null)
+        {
+            Debug.LogError($"Location {gameObject.name} needs a Collider component!");
+        }
+
         // Update highlight based on both interactable and active states
         UpdateHighlightState();
     }
@@ -36,10 +43,12 @@ public class LocationInteraction : MonoBehaviour
     {
         // Location is only truly interactable if it's both active and marked as interactable
         bool canInteract = isActive && locationData.isInteractable;
-        highlight.SetInteractable(canInteract);
-        
+
+        Debug.Log($"Location {locationData.displayName} interactable state: {canInteract}");
         // Set color based on interactable state
         highlight.SetHighlightColor(canInteract ? activeColor : inactiveColor);
+
+        highlight.SetInteractable(canInteract);
     }
 
     public void SetActive(bool active)
