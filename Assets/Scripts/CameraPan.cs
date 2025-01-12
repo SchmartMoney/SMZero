@@ -3,22 +3,45 @@ using UnityEngine;
 public class CameraPanZoomDoubleClick : MonoBehaviour
 {
     public float panSpeed = 0.5f;             // Speed of panning
-    public Vector2 minBounds;                // Minimum X and Y bounds
-    public Vector2 maxBounds;                // Maximum X and Y bounds
+    [Header("Bounds Settings")]
+    public Vector2 minBounds = new Vector2(-90f, 85f);   // Minimum X and Z bounds
+    public Vector2 maxBounds = new Vector2(287f, 431f);  // Maximum X and Z bounds
 
-    public float zoomInSize = 5f;            // Orthographic size when zoomed in
-    public float zoomOutSize = 10f;          // Orthographic size when zoomed out
-    public float zoomSpeed = 5f;             // Speed of zooming
-    private bool isZoomedIn = false;         // Track zoom state
+    [Header("Zoom Settings")]
+    public float minZoom = 20f;              // Minimum zoom distance (closest)
+    public float maxZoom = 400f;             // Maximum zoom distance (farthest)
+    public float zoomSpeed = 2f;             // Speed of zooming
+    public float zoomSmoothness = 5f;        // How smooth the zoom should be
+    private float targetZoom;                // Target zoom level
+    private Camera mainCamera;               // Reference to the camera
+    private float initialRotationX;          // Store initial X rotation
+
+    [Header("Movement Settings")]
+    public float heightFactorDivisor = 15f;  // Divisor for height-based movement scaling
+    public float decelerationRate = 5f;      // Rate at which the camera slows down
 
     private Vector3 dragOrigin;              // Store the position where dragging starts
     private bool isDragging = false;         // Track if the user is dragging
     private Vector3 dragVelocity;            // Store the velocity of the drag
     private bool isDecelerating = false;     // Track whether deceleration is happening
-    public float decelerationRate = 5f;      // Rate at which the camera slows down
 
     private bool hasInteracted = false;      // Ensure interaction only happens once after release
     public GameObject menu;                  // Reference to the menu GameObject
+
+    private void Start()
+    {
+        mainCamera = GetComponent<Camera>();
+        if (mainCamera == null)
+        {
+            mainCamera = Camera.main;
+        }
+
+        // Store initial rotation
+        initialRotationX = transform.eulerAngles.x;
+
+        // Initialize target zoom based on current camera position
+        targetZoom = Vector3.Distance(transform.position, Vector3.zero);
+    }
 
     void Update()
     {
@@ -36,42 +59,72 @@ public class CameraPanZoomDoubleClick : MonoBehaviour
         {
             ApplyDeceleration();
         }
+
+        // Apply smooth zoom
+        UpdateZoom();
+    }
+
+    private void UpdateZoom()
+    {
+        if (Mathf.Abs(Vector3.Distance(transform.position, Vector3.zero) - targetZoom) > 0.01f)
+        {
+            // Calculate direction from camera to target (keeping the same angle)
+            Vector3 directionToTarget = transform.position.normalized;
+            Vector3 targetPosition = directionToTarget * targetZoom;
+            
+            // Maintain the same height ratio based on camera angle
+            float heightRatio = Mathf.Sin(initialRotationX * Mathf.Deg2Rad);
+            targetPosition.y = targetZoom * heightRatio;
+
+            // Smoothly move to target position
+            transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * zoomSmoothness);
+        }
     }
 
     private void HandleMouseInput()
     {
+        // Handle zooming with mouse wheel
+        float scrollDelta = Input.GetAxis("Mouse ScrollWheel");
+        if (scrollDelta != 0)
+        {
+            float zoomDelta = scrollDelta * zoomSpeed * targetZoom;
+            targetZoom = Mathf.Clamp(targetZoom - zoomDelta, minZoom, maxZoom);
+        }
+
         if (Input.GetMouseButtonDown(0))
         {
             dragOrigin = Input.mousePosition;
             isDragging = false;
-            isDecelerating = false; // Stop deceleration if new input begins
-            dragVelocity = Vector3.zero; // Reset velocity
+            isDecelerating = false;
+            dragVelocity = Vector3.zero;
         }
 
         if (Input.GetMouseButton(0))
         {
-            Vector3 currentPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Vector3 previousPosition = Camera.main.ScreenToWorldPoint(dragOrigin);
-            Vector3 difference = previousPosition - currentPosition;
-
-            if (difference.magnitude > 0.01f) // Threshold to detect dragging
+            Vector3 currentPosition = GetWorldPosition(Input.mousePosition);
+            Vector3 previousPosition = GetWorldPosition(dragOrigin);
+            
+            if (currentPosition != Vector3.zero && previousPosition != Vector3.zero)
             {
-                isDragging = true;
+                Vector3 difference = previousPosition - currentPosition;
+
+                if (difference.magnitude > 0.01f)
+                {
+                    isDragging = true;
+                }
+
+                // Scale the movement based on camera height
+                float heightFactor = transform.position.y / heightFactorDivisor;
+                difference *= heightFactor * panSpeed;
+
+                // Move camera while maintaining its angle
+                Vector3 movement = new Vector3(difference.x, 0, difference.z);
+                transform.position += movement;
+
+                dragOrigin = Input.mousePosition;
+                ClampCameraPosition();
+                dragVelocity = movement / Time.deltaTime;
             }
-
-            difference.z = 0; // Ensure no movement on the Z-axis (for 2D games)
-            transform.position += difference; // Move the camera
-            dragOrigin = Input.mousePosition; // Update drag origin
-
-            // Clamp the camera position within bounds
-            transform.position = new Vector3(
-                Mathf.Clamp(transform.position.x, minBounds.x, maxBounds.x),
-                Mathf.Clamp(transform.position.y, minBounds.y, maxBounds.y),
-                transform.position.z
-            );
-
-            // Store velocity for deceleration
-            dragVelocity = difference / Time.deltaTime; // Velocity = distance / time
         }
 
         if (Input.GetMouseButtonUp(0))
@@ -79,40 +132,58 @@ public class CameraPanZoomDoubleClick : MonoBehaviour
             if (isDragging)
             {
                 isDragging = false;
-                isDecelerating = true; // Start deceleration
+                isDecelerating = true;
             }
-            else if (!hasInteracted) // Handle clicks without dragging
+            else if (!hasInteracted)
             {
                 hasInteracted = true;
-
                 if (menu != null)
                 {
-                    menu.SetActive(!menu.activeSelf); // Toggle menu visibility
+                    menu.SetActive(!menu.activeSelf);
                 }
             }
         }
     }
 
+    private Vector3 GetWorldPosition(Vector3 screenPosition)
+    {
+        Ray ray = mainCamera.ScreenPointToRay(screenPosition);
+        Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
+        float distance;
+
+        if (groundPlane.Raycast(ray, out distance))
+        {
+            return ray.GetPoint(distance);
+        }
+
+        return Vector3.zero;
+    }
+
+    private void ClampCameraPosition()
+    {
+        Vector3 pos = transform.position;
+        pos.x = Mathf.Clamp(pos.x, minBounds.x, maxBounds.x);
+        pos.z = Mathf.Clamp(pos.z, minBounds.y, maxBounds.y);
+        
+        // Maintain Y position based on current zoom level and angle
+        float heightRatio = Mathf.Sin(initialRotationX * Mathf.Deg2Rad);
+        pos.y = Vector3.Distance(new Vector3(pos.x, 0, pos.z), Vector3.zero) * heightRatio;
+        
+        transform.position = pos;
+    }
+
     private void ApplyDeceleration()
     {
-        if (dragVelocity.magnitude > 0.1f) // Stop deceleration when velocity is minimal
+        if (dragVelocity.magnitude > 0.1f)
         {
             dragVelocity = Vector3.Lerp(dragVelocity, Vector3.zero, Time.deltaTime * decelerationRate);
-
-            // Apply the velocity to the camera position
             transform.position += dragVelocity * Time.deltaTime;
-
-            // Clamp the camera position within bounds
-            transform.position = new Vector3(
-                Mathf.Clamp(transform.position.x, minBounds.x, maxBounds.x),
-                Mathf.Clamp(transform.position.y, minBounds.y, maxBounds.y),
-                transform.position.z
-            );
+            ClampCameraPosition();
         }
         else
         {
-            isDecelerating = false; // Stop deceleration
-            dragVelocity = Vector3.zero; // Reset velocity
+            isDecelerating = false;
+            dragVelocity = Vector3.zero;
         }
     }
 
@@ -126,34 +197,36 @@ public class CameraPanZoomDoubleClick : MonoBehaviour
             {
                 dragOrigin = touch.position;
                 isDragging = false;
-                isDecelerating = false; // Stop deceleration if new input begins
-                dragVelocity = Vector3.zero; // Reset velocity
+                isDecelerating = false;
+                dragVelocity = Vector3.zero;
             }
 
             if (touch.phase == TouchPhase.Moved)
             {
-                Vector3 currentPosition = Camera.main.ScreenToWorldPoint(touch.position);
-                Vector3 previousPosition = Camera.main.ScreenToWorldPoint(dragOrigin);
-                Vector3 difference = previousPosition - currentPosition;
+                Vector3 currentPosition = GetWorldPosition(touch.position);
+                Vector3 previousPosition = GetWorldPosition(dragOrigin);
 
-                if (difference.magnitude > 0.01f) // Threshold to detect dragging
+                if (currentPosition != Vector3.zero && previousPosition != Vector3.zero)
                 {
-                    isDragging = true;
+                    Vector3 difference = previousPosition - currentPosition;
+
+                    if (difference.magnitude > 0.01f)
+                    {
+                        isDragging = true;
+                    }
+
+                    // Scale the movement based on camera height
+                    float heightFactor = transform.position.y / heightFactorDivisor;
+                    difference *= heightFactor * panSpeed;
+
+                    // Move camera while maintaining its angle
+                    Vector3 movement = new Vector3(difference.x, 0, difference.z);
+                    transform.position += movement;
+
+                    dragOrigin = touch.position;
+                    ClampCameraPosition();
+                    dragVelocity = movement / Time.deltaTime;
                 }
-
-                difference.z = 0; // Ensure no movement on the Z-axis (for 2D games)
-                transform.position += difference; // Move the camera
-                dragOrigin = touch.position; // Update drag origin
-
-                // Clamp the camera position within bounds
-                transform.position = new Vector3(
-                    Mathf.Clamp(transform.position.x, minBounds.x, maxBounds.x),
-                    Mathf.Clamp(transform.position.y, minBounds.y, maxBounds.y),
-                    transform.position.z
-                );
-
-                // Store velocity for deceleration
-                dragVelocity = difference / Time.deltaTime; // Velocity = distance / time
             }
 
             if (touch.phase == TouchPhase.Ended)
@@ -161,11 +234,11 @@ public class CameraPanZoomDoubleClick : MonoBehaviour
                 if (isDragging)
                 {
                     isDragging = false;
-                    isDecelerating = true; // Start deceleration
+                    isDecelerating = true;
                 }
             }
         }
-        else if (Input.touchCount == 2) // Handle pinch-to-zoom
+        else if (Input.touchCount == 2)
         {
             Touch touch1 = Input.GetTouch(0);
             Touch touch2 = Input.GetTouch(1);
@@ -177,9 +250,10 @@ public class CameraPanZoomDoubleClick : MonoBehaviour
             float currentMagnitude = (touch1.position - touch2.position).magnitude;
 
             float difference = currentMagnitude - prevMagnitude;
-
-            Camera.main.orthographicSize -= difference * 0.01f; // Adjust sensitivity as needed
-            Camera.main.orthographicSize = Mathf.Clamp(Camera.main.orthographicSize, zoomInSize, zoomOutSize);
+            
+            // Update target zoom based on pinch gesture
+            float zoomDelta = difference * 0.01f * zoomSpeed;
+            targetZoom = Mathf.Clamp(targetZoom - zoomDelta * targetZoom, minZoom, maxZoom);
         }
     }
 }
