@@ -1,9 +1,10 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Exoa.Common;
 
 [RequireComponent(typeof(LocationHighlight))]
 [RequireComponent(typeof(Collider))]
-public class LocationInteraction : MonoBehaviour
+public class LocationInteraction : TouchSelectableBehaviour
 {
     [Header("Location Settings")]
     [SerializeField] private LocationData locationData;
@@ -44,7 +45,6 @@ public class LocationInteraction : MonoBehaviour
         // Location is only truly interactable if it's both active and marked as interactable
         bool canInteract = isActive && locationData.isInteractable;
 
-        Debug.Log($"Location {locationData.displayName} interactable state: {canInteract}");
         // Set color based on interactable state
         highlight.SetHighlightColor(canInteract ? activeColor : inactiveColor);
 
@@ -57,9 +57,19 @@ public class LocationInteraction : MonoBehaviour
         UpdateHighlightState();
     }
 
-    private void OnMouseDown()
+    // Override OnSelected from TouchSelectableBehaviour
+    protected override void OnSelected(TouchSelect select)
     {
         HandleInteraction();
+    }
+
+    // Keep OnMouseDown for PC/Editor testing
+    private void OnMouseDown()
+    {
+        if (!Application.isMobilePlatform)
+        {
+            HandleInteraction();
+        }
     }
 
     private void HandleInteraction()

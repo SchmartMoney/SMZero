@@ -53,9 +53,7 @@ public class LocationHighlight : MonoBehaviour
         if (isInitialized) return;
 
         // Get all renderers in this object and its children
-        Renderer[] renderers = GetComponentsInChildren<Renderer>();
-        Debug.Log($"[LocationHighlight] {gameObject.name}: Found {renderers?.Length ?? 0} renderers");
-        
+        Renderer[] renderers = GetComponentsInChildren<Renderer>();        
         if (renderers != null && renderers.Length > 0)
         {
             // Initialize arrays to store materials and their default colors
@@ -75,20 +73,11 @@ public class LocationHighlight : MonoBehaviour
                         if (canModifyColor[i])
                         {
                             defaultColors[i] = GetMaterialColor(materials[i]);
-                            Debug.Log($"[LocationHighlight] {gameObject.name}: Initialized material {i} ({materials[i].name}) with color {defaultColors[i]}");
-                        }
-                        else
-                        {
-                            Debug.Log($"[LocationHighlight] {gameObject.name}: Material {i} ({materials[i].name}) doesn't support color modification");
                         }
                     }
                 }
             }
             isInitialized = true;
-        }
-        else
-        {
-            Debug.LogError($"LocationHighlight on {gameObject.name} needs a Renderer component in itself or its children!");
         }
     }
 
@@ -99,7 +88,6 @@ public class LocationHighlight : MonoBehaviour
             InitializeHighlight();
         }
 
-        Debug.Log($"[LocationHighlight] {gameObject.name}: Setting highlight color to {color}");
         
         if (materials != null && materials.Length > 0)
         {
@@ -112,21 +100,15 @@ public class LocationHighlight : MonoBehaviour
                 }
             }
         }
-        else
-        {
-            Debug.LogError($"[LocationHighlight] {gameObject.name}: No materials found to set color!");
-        }
     }
 
     public void SetInteractable(bool interactable)
     {
         isInteractable = interactable;
-        Debug.Log($"[LocationHighlight] {gameObject.name}: Set interactable to {interactable}");
     }
 
     private void OnMouseEnter()
     {
-        Debug.Log($"[LocationHighlight] {gameObject.name}: OnMouseEnter (isInteractable: {isInteractable})");
         if (!isInteractable || materials == null) return;
         
         for (int i = 0; i < materials.Length; i++)
@@ -140,7 +122,6 @@ public class LocationHighlight : MonoBehaviour
 
     private void OnMouseExit()
     {
-        Debug.Log($"[LocationHighlight] {gameObject.name}: OnMouseExit (isInteractable: {isInteractable})");
         if (!isInteractable || materials == null) return;
         
         for (int i = 0; i < materials.Length; i++)

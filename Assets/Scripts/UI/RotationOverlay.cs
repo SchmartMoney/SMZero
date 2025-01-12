@@ -13,6 +13,7 @@ public class RotationOverlay : MonoBehaviour
 
     private void Awake()
     {
+        Debug.Log("Awake");
         // Try to find components if not set up externally
         if (!isInitialized)
         {
@@ -20,7 +21,7 @@ public class RotationOverlay : MonoBehaviour
             var container = transform.Find("RotatePromptPanel/RotateIconContainer")?.GetComponent<RectTransform>();
             var debug = transform.Find("DebugText")?.GetComponent<TextMeshProUGUI>();
             
-            if (panel != null && container != null && debug != null)
+            if (panel != null && container != null)
             {
                 Setup(panel, container, debug);
             }
@@ -29,7 +30,7 @@ public class RotationOverlay : MonoBehaviour
 
     public void Setup(GameObject panel, RectTransform imageRect, TextMeshProUGUI debugTextComponent)
     {
-        if (panel == null || imageRect == null || debugTextComponent == null)
+        if (panel == null || imageRect == null)
         {
             Debug.LogError("RotationOverlay: Setup called with null components!");
             return;
@@ -55,7 +56,6 @@ public class RotationOverlay : MonoBehaviour
             lastHeight = Screen.height;
             CheckOrientation(false);
         }
-
     }
 
     private void CheckOrientation(bool forceUpdate)
@@ -64,6 +64,10 @@ public class RotationOverlay : MonoBehaviour
 
         bool isPortrait = Screen.height > Screen.width;
         
+        Debug.Log("isPortrait: " + isPortrait);
+        Debug.Log("screen size: " + Screen.width + "x" + Screen.height);    
+
+
         if (forceUpdate || isPortrait != lastOrientationWasPortrait)
         {
             lastOrientationWasPortrait = isPortrait;
@@ -71,7 +75,6 @@ public class RotationOverlay : MonoBehaviour
         }
     }
 
-  
 
     private void OnEnable()
     {
@@ -80,4 +83,12 @@ public class RotationOverlay : MonoBehaviour
             CheckOrientation(true);
         }
     }
+
+    // Editor tips as tooltip
+    [Header("Testing Tips")]
+    [Tooltip("In Unity Editor:\n" +
+             "1. Use Game window's aspect ratio dropdown\n" +
+             "2. Or drag Game window edges\n" +
+             "3. Portrait mode when height > width")]
+    [SerializeField] private bool editorTips;
 }
