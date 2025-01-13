@@ -131,3 +131,101 @@ slot.
 ▪ If no slot is available, an error message appears: "No available slots for this 
 asset." 
 ▪ The asset immediately becomes active once placed. 
+
+
+
+
+Basic Mechanics
+For now in-game assets are so called Pseudo-NFTs. They act as NFTs but are only digital in-game assets. No blockchain activity yet.
+The building produces assets, not the characters. Characters influence the building’s production through their bonuses.
+Characters additionally generate passive income, which must be collected manually like assets.
+Players start with 1,000 FD and can only access the zone “Vault Avenue”.
+In the zone, only one Zone Asset (= Zone NFT in the future) can be placed and only one building can be activated.
+Other 9 Zone Asset slots are greyed out and cannot be accessed.
+Only one asset per production cycle can be created.
+Assets are automatically sold when collected.
+A building can house up to 3 characters, whose bonuses stack cumulatively.
+Assets and character income must be manually collected once their progress is complete, after which the timer resets.
+A progress bar displays the current status with 4 decimal places, e.g., 0.0000/50, 0.0000/100, 0.0000/200.
+
+Characters and Their Bonuses
+Richard
+No bonuses. Required for the building to produce.
+Generates 50 FD every 24 hours. Progress rate: 0.0005787 FD/second
+Emily
+15 % time reduction: The building produces assets every 0.85 hours.
+Generates 100 FD every 24 hours. Progress rate: 0.0011574 FD/second
+Jake
+2x asset value: The value of each produced asset is doubled.
+Generates 200 FD every 24 hours. Progress rate: 0.0023148 FD/second
+Amount counter underneath the character has to update every second so players can see the progress.
+
+
+
+# Character/NFT Costs and Progression Guide
+
+**Goal**: Unlock Emily after ~8 days and Jake after ~14 days.
+
+## Character Costs and Unlock Times
+
+| Character  | Cost (in FD) | FD/24h | Unlock Time (d) |
+|------------|-------------|---------|----------------|
+| Richard    | 400         | 50      | Immediately    |
+| Emily      | 6,000       | 100     | ~8 days       |
+| Jake       | 12,000      | 200     | ~14 days      |
+| Zone Asset | 500         | -       | -             |
+
+## Daily Earnings (Building + Characters)
+
+| Characters in Building | Production (h) | Asset Value (FD) | Daily Production | Character Income/Day | Total Daily Earnings |
+|-----------------------|----------------|------------------|------------------|---------------------|-------------------|
+| Richard               | 1.00           | 50               | 24 x 50 = 1200  | 50                  | 1,250             |
+| Richard + Emily       | 0.85           | 50               | ~28 x 50 = 1,400| 100                 | ~1,500            |
+| Richard + Emily + Jake| 0.85           | 100              | ~28 x 100 = 2,800| 200                | ~3,000            |
+
+
+Character/NFT Costs and Progression
+Goal: Unlock Emily after ~8 days and Jake after ~14 days.
+
+
+Achievements
+Easy Achievements (10 total, 70%)
+First Step – Activate your first zone.
+Reward: 50 FD.
+Worker Recruited – Assign Richard to the building. (automatic when bought)
+Reward: 50 FD.
+First Production – Collect your first asset.
+Reward: 50 FD.
+Full House – Assign all 3 characters (Richard, Emily, Jake) to the building.
+Reward: 150 FD. (automatic when all 3 chars bought)
+Time Saver – Reduce the production time below 1 hour (Emily must be in the building).
+Reward: 100 FD.
+Double the Income – Increase the asset value to 100 FD (Jake must be in the building).
+Reward: 150 FD.
+Production Pro – Produce 50 assets in total.
+Reward: 200 FD.
+Daily Goal – Produce and collect 15 assets in 24h (must be within 00:00 and 23:59 of same day).
+Reward: 250 FD.
+Successful Merchant – Earn a total of 5,000 FD.
+Reward: 300 FD.
+
+Medium Achievements (3 total, 20%)
+Continuous Producer – Produce 100 assets in total.
+Reward: 500 FD.
+Team Leader – Use all 3 characters to produce 50 assets.
+Reward: 500 FD. (starts counting once all 3 chars are in the building)
+Passive Income Source – Collect 2,000 FD from character income.
+Reward: 750 FD.
+
+Hard Achievements (2 total, 10%)
+Production Master – Produce 250 assets in total.
+Reward: 1,000 FD.
+Multi-Millionaire – Earn a total of 50,000 FD.
+Reward: 2,000 FD.
+
+Cost Summary
+Zone Asset: 500 FD
+Richard: 400 FD
+Emily: 6,000 FD
+Jake: 12,000 FD
+Asset Sale Price: 50 FD
