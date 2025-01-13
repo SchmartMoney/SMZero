@@ -4,6 +4,7 @@ using Exoa.Common;
 
 [RequireComponent(typeof(LocationHighlight))]
 [RequireComponent(typeof(Collider))]
+[RequireComponent(typeof(TouchSelectable))]
 public class LocationInteraction : TouchSelectableBehaviour
 {
     [Header("Location Settings")]
@@ -19,11 +20,13 @@ public class LocationInteraction : TouchSelectableBehaviour
 
     private LocationHighlight highlight;
     private LocationPopupUI popupUI;
+    private TouchSelectable touchSelectable;
 
     private void Awake()
     {
         highlight = GetComponent<LocationHighlight>();
         popupUI = FindObjectOfType<LocationPopupUI>();
+        touchSelectable = GetComponent<TouchSelectable>();
 
         if (popupUI == null)
         {
@@ -60,7 +63,10 @@ public class LocationInteraction : TouchSelectableBehaviour
     // Override OnSelected from TouchSelectableBehaviour
     protected override void OnSelected(TouchSelect select)
     {
-        HandleInteraction();
+        if (Application.isMobilePlatform)
+        {
+            HandleInteraction();
+        }
     }
 
     // Keep OnMouseDown for PC/Editor testing

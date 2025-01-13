@@ -1,36 +1,40 @@
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 
-[RequireComponent(typeof(TextMeshProUGUI))]
-public class TelegramUserDisplay : MonoBehaviour
+namespace UI
 {
-    private TextMeshProUGUI userIdText;
-    private TelegramManager telegramManager;
-
-    private void Start()
+    public class TelegramUserDisplay : MonoBehaviour
     {
-        userIdText = GetComponent<TextMeshProUGUI>();
-        telegramManager = TelegramManager.Instance;
+        [SerializeField] private TextMeshProUGUI userIdText;
+        [SerializeField] private TextMeshProUGUI usernameText;
+        [SerializeField] private TextMeshProUGUI firstNameText;
+        [SerializeField] private TextMeshProUGUI lastNameText;
+        [SerializeField] private TextMeshProUGUI languageText;
+        [SerializeField] private TextMeshProUGUI isPremiumText;
 
-        UpdateUserIdDisplay();
-    }
+        void Start()
+        {
+            // Call this to initialize Telegram WebApp
+            TelegramInit();
+        }
 
-    private void UpdateUserIdDisplay()
-    {
-        if (telegramManager.IsInitialized())
+        private void TelegramInit()
         {
-            userIdText.text = $"Telegram ID: {telegramManager.UserId}";
-            userIdText.color = Color.green;
+    #if !UNITY_EDITOR && UNITY_WEBGL
+            WebGLPlugins.InitTelegramWebApp();
+            UpdateUserInfo();
+    #endif
         }
-        else if (telegramManager.IsTelegramApp)
+
+        public void UpdateUserInfo()
         {
-            userIdText.text = "Initializing Telegram...";
-            userIdText.color = Color.yellow;
-        }
-        else
-        {
-            userIdText.text = "Not running in Telegram";
-            userIdText.color = Color.gray;
+            if (userIdText) userIdText.text = $"User ID: {WebGLPlugins.GetTelegramUserId()}";
+            if (usernameText) usernameText.text = $"Username: {WebGLPlugins.GetTelegramUsername()}";
+            if (firstNameText) firstNameText.text = $"First Name: {WebGLPlugins.GetTelegramFirstName()}";
+            if (lastNameText) lastNameText.text = $"Last Name: {WebGLPlugins.GetTelegramLastName()}";
+            if (languageText) languageText.text = $"Language: {WebGLPlugins.GetTelegramLanguage()}";
+            if (isPremiumText) isPremiumText.text = $"Premium: {(WebGLPlugins.IsTelegramPremium() ? "Yes" : "No")}";
         }
     }
 } 

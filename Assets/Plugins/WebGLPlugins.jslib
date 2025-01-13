@@ -1,42 +1,4 @@
 mergeInto(LibraryManager.library, {
-    IsPortraitOrientation: function() {
-        // Simple check based on dimensions
-        var isPortrait = window.innerHeight > window.innerWidth;
-        console.log('Current dimensions:', window.innerWidth, 'x', window.innerHeight, '=', isPortrait ? 'Portrait' : 'Landscape');
-        return isPortrait;
-    },
-
-    SubscribeToOrientationChange: function() {
-        function checkOrientation() {
-            // Add a small delay to ensure dimensions have updated
-            setTimeout(function() {
-                try {
-                    var unityInstance = window.gameInstance;
-                    if (unityInstance) {
-                        unityInstance.SendMessage("RotationOverlay", "CheckOrientation");
-                        console.log("Orientation check sent to Unity");
-                    } else {
-                        console.error("Unity instance not found");
-                    }
-                } catch (error) {
-                    console.error("Error in checkOrientation:", error);
-                }
-            }, 200);
-        }
-
-        window.addEventListener('orientationchange', function() {
-            console.log('Orientation change event fired');
-            checkOrientation();
-        });
-        
-        window.addEventListener('resize', function() {
-            console.log('Resize event fired');
-            checkOrientation();
-        });
-
-        // Initial check
-        checkOrientation();
-    },
 
     InitTelegramWebApp: function() {
         try {
@@ -97,6 +59,84 @@ mergeInto(LibraryManager.library, {
         } catch (error) {
             console.error("Error checking Telegram WebApp:", error);
             return false;
+        }
+    },
+
+    GetTelegramUsername: function() {
+        try {
+            var user = window.Telegram.WebApp.initDataUnsafe.user;
+            if (user && user.username) {
+                var str = user.username.toString();
+                var bufferSize = lengthBytesUTF8(str) + 1;
+                var buffer = _malloc(bufferSize);
+                stringToUTF8(str, buffer, bufferSize);
+                return buffer;
+            }
+            return 0;
+        } catch (error) {
+            console.error("Error getting username:", error);
+            return 0;
+        }
+    },
+
+    GetTelegramFirstName: function() {
+        try {
+            var user = window.Telegram.WebApp.initDataUnsafe.user;
+            if (user && user.first_name) {
+                var str = user.first_name.toString();
+                var bufferSize = lengthBytesUTF8(str) + 1;
+                var buffer = _malloc(bufferSize);
+                stringToUTF8(str, buffer, bufferSize);
+                return buffer;
+            }
+            return 0;
+        } catch (error) {
+            console.error("Error getting first name:", error);
+            return 0;
+        }
+    },
+
+    GetTelegramLastName: function() {
+        try {
+            var user = window.Telegram.WebApp.initDataUnsafe.user;
+            if (user && user.last_name) {
+                var str = user.last_name.toString();
+                var bufferSize = lengthBytesUTF8(str) + 1;
+                var buffer = _malloc(bufferSize);
+                stringToUTF8(str, buffer, bufferSize);
+                return buffer;
+            }
+            return 0;
+        } catch (error) {
+            console.error("Error getting last name:", error);
+            return 0;
+        }
+    },
+
+    GetTelegramLanguage: function() {
+        try {
+            var user = window.Telegram.WebApp.initDataUnsafe.user;
+            if (user && user.language_code) {
+                var str = user.language_code.toString();
+                var bufferSize = lengthBytesUTF8(str) + 1;
+                var buffer = _malloc(bufferSize);
+                stringToUTF8(str, buffer, bufferSize);
+                return buffer;
+            }
+            return 0;
+        } catch (error) {
+            console.error("Error getting language:", error);
+            return 0;
+        }
+    },
+
+    IsTelegramPremium: function() {
+        try {
+            var user = window.Telegram.WebApp.initDataUnsafe.user;
+            return user && user.is_premium ? 1 : 0;
+        } catch (error) {
+            console.error("Error checking premium status:", error);
+            return 0;
         }
     }
 });
