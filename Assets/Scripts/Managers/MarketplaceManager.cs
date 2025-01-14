@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 using UnityEngine.Events;
+using System.Linq;
 
 namespace SMZero
 {
@@ -18,7 +19,6 @@ namespace SMZero
         [SerializeField] private Sprite vaultAvenueSprite;
 
         private List<NFTDisplayData> listings = new List<NFTDisplayData>();
-        private float playerBalance = 1000f; // Starting balance
         private PlayerInventory playerInventory = new PlayerInventory();
 
         public UnityEvent<float> OnBalanceChanged = new UnityEvent<float>();
@@ -95,7 +95,7 @@ namespace SMZero
             }
 
             OnListingsUpdated.Invoke(GetAvailableListings());
-            OnBalanceChanged.Invoke(playerBalance);
+            OnBalanceChanged.Invoke(PlayerProgress.Instance.GetFortuneDollars());
         }
 
         private void AddCharacterNFT(string name, Sprite icon, NFTRarity rarity, float price, float speedMod, float amountMod)
@@ -128,11 +128,17 @@ namespace SMZero
                 IsSold = false
             };
 
+            // Check if this NFT was already purchased
+            if (playerInventory.OwnedCharacterIds.Contains(nft.Id))
+            {
+                displayData.IsSold = true;
+            }
+
             listings.Add(displayData);
 
             // Verify the NFT data after creation
             var verifyNft = (CharacterNFT)displayData.NftData;
-            Debug.Log($"Added Character NFT: {name}, Price: {price}, Icon: {verifyNft.Icon?.name ?? "null"}, Sprite valid: {verifyNft.Icon != null}");
+            Debug.Log($"Added Character NFT: {name}, Price: {price}, Icon: {verifyNft.Icon?.name ?? "null"}, Sprite valid: {verifyNft.Icon != null}, IsSold: {displayData.IsSold}");
         }
 
         private void AddZoneNFT(string name, Sprite icon, NFTRarity rarity, float price)
@@ -163,11 +169,17 @@ namespace SMZero
                 IsSold = false
             };
 
+            // Check if this NFT was already purchased
+            if (playerInventory.OwnedZoneIds.Contains(nft.Id))
+            {
+                displayData.IsSold = true;
+            }
+
             listings.Add(displayData);
 
             // Verify the NFT data after creation
             var verifyNft = (ZoneNFT)displayData.NftData;
-            Debug.Log($"Added Zone NFT: {name}, Price: {price}, Icon: {verifyNft.Icon?.name ?? "null"}, Sprite valid: {verifyNft.Icon != null}");
+            Debug.Log($"Added Zone NFT: {name}, Price: {price}, Icon: {verifyNft.Icon?.name ?? "null"}, Sprite valid: {verifyNft.Icon != null}, IsSold: {displayData.IsSold}");
         }
 
         public List<NFTDisplayData> GetAvailableListings()
@@ -215,39 +227,36 @@ namespace SMZero
 
             Debug.Log("Restoring marketplace state...");
             
-            // Restore listings
-            listings.Clear();
-            foreach (var kvp in state.ActiveListings)
+            // Restore inventory first
+            playerInventory = state.PlayerInventory;
+
+            // Update sold status of listings based on inventory
+            foreach (var listing in listings)
             {
-                listings.Add(kvp.Value);
-                if (kvp.Value.Type == NFTType.Character)
+                if (listing.Type == NFTType.Character)
                 {
-                    var nft = (CharacterNFT)kvp.Value.NftData;
-                    Debug.Log($"Restored Character NFT: {nft.Name}, Icon: {nft.Icon?.name ?? "null"}, Sprite valid: {nft.Icon != null}");
+                    var nft = (CharacterNFT)listing.NftData;
+                    listing.IsSold = playerInventory.OwnedCharacterIds.Contains(nft.Id);
                 }
-                else
+                else if (listing.Type == NFTType.Zone)
                 {
-                    var nft = (ZoneNFT)kvp.Value.NftData;
-                    Debug.Log($"Restored Zone NFT: {nft.Name}, Icon: {nft.Icon?.name ?? "null"}, Sprite valid: {nft.Icon != null}");
+                    var nft = (ZoneNFT)listing.NftData;
+                    listing.IsSold = playerInventory.OwnedZoneIds.Contains(nft.Id);
                 }
             }
 
-            // Restore inventory
-            playerInventory = state.PlayerInventory;
-
             // Notify UI
             OnListingsUpdated.Invoke(GetAvailableListings());
-            OnBalanceChanged.Invoke(playerBalance);
+            OnBalanceChanged.Invoke(PlayerProgress.Instance.GetFortuneDollars());
             
             Debug.Log($"State restored with {listings.Count} listings");
         }
 
         public bool TryPurchaseNFT(NFTDisplayData listing)
         {
-            if (listing.IsSold || playerBalance < listing.Price)
+            if (listing.IsSold || !PlayerProgress.Instance.SpendFortuneDollars(listing.Price))
                 return false;
 
-            playerBalance -= listing.Price;
             listing.IsSold = true;
 
             // Update inventory
@@ -264,7 +273,13 @@ namespace SMZero
                 Debug.Log($"Purchased Zone NFT: {nft.Name} for {listing.Price} FD");
             }
 
-            OnBalanceChanged.Invoke(playerBalance);
+            // Log the updated state after purchase
+            if (GameStateManager.Instance != null)
+            {
+                GameStateManager.Instance.ExportGameState();
+            }
+
+            OnBalanceChanged.Invoke(PlayerProgress.Instance.GetFortuneDollars());
             OnListingsUpdated.Invoke(GetAvailableListings());
 
             return true;
@@ -272,7 +287,7 @@ namespace SMZero
 
         public float GetPlayerBalance()
         {
-            return playerBalance;
+            return PlayerProgress.Instance.GetFortuneDollars();
         }
     }
 } 

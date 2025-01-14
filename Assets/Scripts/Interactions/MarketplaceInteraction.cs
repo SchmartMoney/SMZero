@@ -27,7 +27,7 @@ namespace SMZero
             if (MarketplaceManager.Instance != null)
             {
                 MarketplaceManager.Instance.OnBalanceChanged.AddListener(UpdateBalanceText);
-                MarketplaceManager.Instance.OnListingsUpdated.AddListener(UpdateListings);
+                MarketplaceManager.Instance.OnListingsUpdated.AddListener(OnListingsUpdated);
                 UpdateUI();
             }
             else
@@ -62,7 +62,7 @@ namespace SMZero
             if (MarketplaceManager.Instance != null)
             {
                 MarketplaceManager.Instance.OnBalanceChanged.RemoveListener(UpdateBalanceText);
-                MarketplaceManager.Instance.OnListingsUpdated.RemoveListener(UpdateListings);
+                MarketplaceManager.Instance.OnListingsUpdated.RemoveListener(OnListingsUpdated);
             }
         }
 
@@ -88,30 +88,37 @@ namespace SMZero
             }
         }
 
+        private void OnListingsUpdated(List<NFTDisplayData> listings)
+        {
+            RefreshListings(listings);
+        }
+
         private void RefreshListings()
+        {
+            if (listingContainer == null || MarketplaceManager.Instance == null) return;
+            var listings = MarketplaceManager.Instance.GetAvailableListings();
+            RefreshListings(listings);
+        }
+
+        private void RefreshListings(List<NFTDisplayData> listings)
         {
             if (listingContainer == null || MarketplaceManager.Instance == null) return;
 
             Debug.Log("Refreshing listings...");
 
+            // Clear existing listings
             foreach (Transform child in listingContainer)
             {
                 Destroy(child.gameObject);
             }
 
-            var listings = MarketplaceManager.Instance.GetAvailableListings();
-            UpdateListings(listings);
-        }
-
-        private void UpdateListings(List<NFTDisplayData> listings)
-        {
+            Debug.Log($"Got {listings.Count} available listings");
+            
             if (listingContainer == null || listingPrefab == null)
             {
                 Debug.LogError("Cannot update listings: container or prefab is missing");
                 return;
             }
-
-            Debug.Log($"Updating listings UI with {listings.Count} items");
 
             foreach (var listing in listings)
             {
@@ -147,13 +154,19 @@ namespace SMZero
                     UpdateUI();
                 }
             }
+
+            // Save state after purchase
+            if (GameStateManager.Instance != null)
+            {
+                GameStateManager.Instance.ExportGameState();
+            }
         }
 
         private void OnCloseClicked()
         {
             if (GameStateManager.Instance != null)
             {
-                GameStateManager.Instance.SaveGameState();
+                GameStateManager.Instance.ExportGameState();
             }
 
             if (marketplaceCanvas != null)
@@ -172,7 +185,7 @@ namespace SMZero
             if (MarketplaceManager.Instance != null)
             {
                 MarketplaceManager.Instance.OnBalanceChanged.RemoveListener(UpdateBalanceText);
-                MarketplaceManager.Instance.OnListingsUpdated.RemoveListener(UpdateListings);
+                MarketplaceManager.Instance.OnListingsUpdated.RemoveListener(OnListingsUpdated);
             }
         }
     }

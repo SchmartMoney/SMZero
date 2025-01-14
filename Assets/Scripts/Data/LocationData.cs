@@ -16,6 +16,7 @@ public class LocationData
     [Tooltip("Use SceneNames constants for scene paths")]
     public string sceneToLoad;  // Example: SceneNames.VAULT_SCENE
     public bool isInteractable = false;  // Whether this location can be entered
+    public bool isMarketplace = false;  // Whether this location has a marketplace
 
     // Helper method to validate scene name
     public bool ValidateScenePath()

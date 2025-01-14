@@ -32,16 +32,32 @@ namespace SMZero
 
         private void SetupComponents()
         {
-            // Try to find existing components
-            itemImage = GetComponentInChildren<Image>();
-            nameText = transform.Find("NameText")?.GetComponent<TextMeshProUGUI>();
-            rarityText = transform.Find("RarityText")?.GetComponent<TextMeshProUGUI>();
-            priceText = transform.Find("PriceText")?.GetComponent<TextMeshProUGUI>();
-            buyButton = GetComponentInChildren<Button>();
-
+            // Try to find existing components by name first
             if (itemImage == null)
             {
-                // Create image container if it doesn't exist
+                itemImage = transform.Find("ItemImage")?.GetComponent<Image>();
+            }
+            if (nameText == null)
+            {
+                nameText = transform.Find("NameText")?.GetComponent<TextMeshProUGUI>();
+            }
+            if (rarityText == null)
+            {
+                rarityText = transform.Find("RarityText")?.GetComponent<TextMeshProUGUI>();
+            }
+            if (priceText == null)
+            {
+                priceText = transform.Find("PriceText")?.GetComponent<TextMeshProUGUI>();
+            }
+            if (buyButton == null)
+            {
+                buyButton = transform.Find("BuyButton")?.GetComponent<Button>();
+            }
+
+            // Only create a new image if one doesn't exist in the prefab
+            if (itemImage == null)
+            {
+                Debug.LogWarning($"[{gameObject.name}] ItemImage not found in prefab, creating new one");
                 GameObject imageObj = new GameObject("ItemImage", typeof(RectTransform));
                 imageObj.transform.SetParent(transform, false);
                 itemImage = imageObj.AddComponent<Image>();

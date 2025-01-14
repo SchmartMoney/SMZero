@@ -37,7 +37,10 @@ namespace SMZero
             instance = this;
             DontDestroyOnLoad(gameObject);
             
-            // Delay initialization to ensure other managers are ready
+            // Initialize with default state
+            currentState = new GameState();
+            
+            // Initialize marketplace state after a short delay
             Invoke(nameof(InitializeState), 0.1f);
         }
 
@@ -50,34 +53,52 @@ namespace SMZero
                 return;
             }
 
-            currentState = new GameState
+            if (currentState.MarketplaceState == null)
             {
-                MarketplaceState = new MarketplaceState
+                currentState.MarketplaceState = new MarketplaceState
                 {
                     ActiveListings = MarketplaceManager.Instance.GetActiveListings(),
                     PlayerInventory = MarketplaceManager.Instance.GetPlayerInventory()
-                }
-            };
+                };
+            }
+
+            // Apply the state to the marketplace
+            MarketplaceManager.Instance.RestoreState(currentState.MarketplaceState);
         }
 
-        public void SaveGameState()
+        public string ExportGameState()
         {
             if (currentState == null || MarketplaceManager.Instance == null)
             {
-                Debug.LogWarning("Cannot save game state: dependencies not initialized");
-                return;
+                Debug.LogWarning("Cannot export game state: dependencies not initialized");
+                return "{}";
             }
 
-            // Update marketplace state before saving
-            currentState.MarketplaceState.ActiveListings = MarketplaceManager.Instance.GetActiveListings();
-            currentState.MarketplaceState.PlayerInventory = MarketplaceManager.Instance.GetPlayerInventory();
+            try
+            {
+                // Update marketplace state before exporting
+                currentState.MarketplaceState.ActiveListings = MarketplaceManager.Instance.GetActiveListings();
+                currentState.MarketplaceState.PlayerInventory = MarketplaceManager.Instance.GetPlayerInventory();
+                currentState.PlayerBalance = PlayerProgress.Instance.GetFortuneDollars();
 
-            // TODO: Implement actual save to disk/cloud
-            Debug.Log("Game state saved");
+                // Convert to formatted JSON
+                string json = JsonUtility.ToJson(currentState, true);
+                Debug.Log($"Current Game State:\n{json}");
+                return json;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Error exporting game state: {e.Message}");
+                return "{}";
+            }
         }
 
         public GameState GetCurrentState()
         {
+            if (currentState != null)
+            {
+                currentState.PlayerBalance = PlayerProgress.Instance.GetFortuneDollars();
+            }
             return currentState;
         }
 
@@ -87,7 +108,15 @@ namespace SMZero
             {
                 currentState.MarketplaceState = state;
                 MarketplaceManager.Instance.RestoreState(state);
+                // Log the updated state
+                Debug.Log($"Updated Game State:\n{ExportGameState()}");
             }
+        }
+
+        private void OnApplicationQuit()
+        {
+            // Export final state when quitting
+            Debug.Log($"Final Game State:\n{ExportGameState()}");
         }
     }
 
@@ -95,5 +124,6 @@ namespace SMZero
     public class GameState
     {
         public MarketplaceState MarketplaceState;
+        public float PlayerBalance;
     }
 } 

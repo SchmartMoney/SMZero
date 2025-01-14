@@ -16104,6 +16104,7 @@ MonoBehaviour:
     description: 
     sceneToLoad: 
     isInteractable: 0
+    isMarketplace: 0
   uiData:
     title: 
     description: 
@@ -16112,6 +16113,7 @@ MonoBehaviour:
   isActive: 0
   activeColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  marketplaceCanvas: {fileID: 0}
 --- !u!114 &229044568
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24803,7 +24805,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &424259032
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -37182,6 +37184,7 @@ MonoBehaviour:
     description: 
     sceneToLoad: 
     isInteractable: 0
+    isMarketplace: 0
   uiData:
     title: Hearthside Haven
     description: 
@@ -37190,6 +37193,7 @@ MonoBehaviour:
   isActive: 0
   activeColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  marketplaceCanvas: {fileID: 0}
 --- !u!114 &641164780
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -73198,7 +73202,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 20}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &1358758266
 MonoBehaviour:
@@ -83328,6 +83332,7 @@ MonoBehaviour:
     description: 
     sceneToLoad: 
     isInteractable: 0
+    isMarketplace: 0
   uiData:
     title: Bureaucracy Bend
     description: 
@@ -83336,6 +83341,7 @@ MonoBehaviour:
   isActive: 0
   activeColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  marketplaceCanvas: {fileID: 0}
 --- !u!114 &1559416620
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -96696,6 +96702,7 @@ MonoBehaviour:
     description: desc
     sceneToLoad: 
     isInteractable: 0
+    isMarketplace: 0
   uiData:
     title: Skylift Terminal
     description: desc
@@ -96704,6 +96711,7 @@ MonoBehaviour:
   isActive: 0
   activeColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  marketplaceCanvas: {fileID: 0}
 --- !u!114 &1722705475
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -97490,6 +97498,7 @@ MonoBehaviour:
     description: 
     sceneToLoad: 
     isInteractable: 0
+    isMarketplace: 0
   uiData:
     title: Justice Crossroads
     description: 
@@ -97498,6 +97507,7 @@ MonoBehaviour:
   isActive: 0
   activeColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  marketplaceCanvas: {fileID: 0}
 --- !u!114 &1737229930
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -101682,6 +101692,7 @@ MonoBehaviour:
     description: Enter to manage your vault and NFTs
     sceneToLoad: VaultAvenueDetailedScene
     isInteractable: 1
+    isMarketplace: 0
   uiData:
     title: Vault Avenue
     description: Manage your vault and NFTs here.\nStake NFTs to earn fortune.
@@ -101690,6 +101701,7 @@ MonoBehaviour:
   isActive: 1
   activeColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  marketplaceCanvas: {fileID: 0}
 --- !u!114 &1777978229
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -108869,6 +108881,7 @@ MonoBehaviour:
     description: 
     sceneToLoad: 
     isInteractable: 0
+    isMarketplace: 0
   uiData:
     title: Ambition Alley
     description: 
@@ -108877,6 +108890,7 @@ MonoBehaviour:
   isActive: 0
   activeColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  marketplaceCanvas: {fileID: 0}
 --- !u!114 &1888233422
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -110742,7 +110756,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.09, y: 17.13, z: 1.0000002}
+  m_Size: {x: 1.09, y: 48.67, z: 1.0000002}
   m_Center: {x: 0.000000059604645, y: -0.00000023841858, z: -0.0000005662441}
 --- !u!114 &1929899165
 MonoBehaviour:
@@ -110780,15 +110794,17 @@ MonoBehaviour:
     displayName: Twilight Square
     description: 
     sceneToLoad: 
-    isInteractable: 0
+    isInteractable: 1
+    isMarketplace: 1
   uiData:
     title: Twilight Square
     description: 
     showEnterButton: 1
     showLeaveButton: 1
-  isActive: 0
+  isActive: 1
   activeColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  marketplaceCanvas: {fileID: 424259031}
 --- !u!114 &1929899167
 MonoBehaviour:
   m_ObjectHideFlags: 0

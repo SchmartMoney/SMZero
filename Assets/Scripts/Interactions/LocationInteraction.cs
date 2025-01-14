@@ -22,6 +22,9 @@ namespace SMZero
         [SerializeField] private Color activeColor = Color.yellow;
         [SerializeField] private Color inactiveColor = Color.grey;
 
+        [Header("UI References")]
+        [SerializeField] private GameObject marketplaceCanvas;
+
         private LocationHighlight highlight;
         private LocationPopupUI popupUI;
         private TouchSelectable touchSelectable;
@@ -96,6 +99,15 @@ namespace SMZero
             }
 
             Debug.Log($"Showing popup for location: {locationData.displayName}");
+            
+            // If this is a marketplace building, show the marketplace UI
+            if (locationData.isMarketplace && marketplaceCanvas != null)
+            {
+                marketplaceCanvas.SetActive(true);
+                return;
+            }
+
+            // Otherwise show the regular location popup
             if (popupUI != null)
             {
                 popupUI.Show(locationData, uiData, OnEnterLocation, OnLeaveLocation);
@@ -128,14 +140,14 @@ namespace SMZero
             // Save current state before scene transition
             if (gameStateManager != null)
             {
-                gameStateManager.SaveGameState();
+                gameStateManager.ExportGameState();
             }
         }
 
         private void OnLeaveLocation()
         {
             // Save current state before leaving
-            GameStateManager.Instance.SaveGameState();
+            GameStateManager.Instance.ExportGameState();
             SceneManager.LoadScene("MainScene");
         }
 
