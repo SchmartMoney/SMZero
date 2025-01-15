@@ -31,12 +31,7 @@ namespace SMZero
             {
                 if (instance == null)
                 {
-                    instance = FindObjectOfType<PlayerProgress>();
-                    if (instance == null)
-                    {
-                        GameObject go = new GameObject("PlayerProgress");
-                        instance = go.AddComponent<PlayerProgress>();
-                    }
+                    instance = GameManagers.Instance.Progress;
                 }
                 return instance;
             }
@@ -57,7 +52,6 @@ namespace SMZero
             }
 
             instance = this;
-            DontDestroyOnLoad(gameObject);
             LoadProgress();
         }
 
