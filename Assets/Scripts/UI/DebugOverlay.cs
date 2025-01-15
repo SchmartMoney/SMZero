@@ -164,10 +164,39 @@ namespace SMZero
             resetStateTextRect.offsetMin = Vector2.zero;
             resetStateTextRect.offsetMax = Vector2.zero;
 
+            // Create Speed Up Production Button
+            GameObject speedUpObj = new GameObject("SpeedUpProductionButton");
+            speedUpObj.transform.SetParent(canvasObj.transform);
+            Button speedUpButton = speedUpObj.AddComponent<Button>();
+            Image speedUpImage = speedUpObj.AddComponent<Image>();
+            speedUpImage.color = new Color(0.2f, 0.8f, 0.2f, 0.8f); // Green color
+            
+            GameObject speedUpTextObj = new GameObject("Text");
+            speedUpTextObj.transform.SetParent(speedUpObj.transform);
+            TextMeshProUGUI speedUpText = speedUpTextObj.AddComponent<TextMeshProUGUI>();
+            speedUpText.text = "Speed Up";
+            speedUpText.fontSize = 14;
+            speedUpText.color = Color.white;
+            speedUpText.alignment = TextAlignmentOptions.Center;
+            
+            RectTransform speedUpRect = speedUpObj.GetComponent<RectTransform>();
+            speedUpRect.anchorMin = new Vector2(1, 1);
+            speedUpRect.anchorMax = new Vector2(1, 1);
+            speedUpRect.pivot = new Vector2(1, 1);
+            speedUpRect.sizeDelta = new Vector2(100, 30);
+            speedUpRect.anchoredPosition = new Vector2(-340, -10); // Position it to the left of reset state button
+            
+            RectTransform speedUpTextRect = speedUpTextObj.GetComponent<RectTransform>();
+            speedUpTextRect.anchorMin = Vector2.zero;
+            speedUpTextRect.anchorMax = Vector2.one;
+            speedUpTextRect.offsetMin = Vector2.zero;
+            speedUpTextRect.offsetMax = Vector2.zero;
+
             // Add button listeners
             toggleButton.onClick.AddListener(ToggleVisibility);
             showStateButton.onClick.AddListener(ShowCurrentState);
             resetStateButton.onClick.AddListener(ResetState);
+            speedUpButton.onClick.AddListener(SpeedUpProduction);
         }
 
         private GameObject CreatePanel(Transform parent, Vector2 size, Vector2 position, Vector2 anchor)
@@ -342,6 +371,36 @@ namespace SMZero
                 
                 Log("State has been reset to defaults");
                 Log("Please restart the game to apply changes");
+            }
+        }
+
+        private void SpeedUpProduction()
+        {
+            Log("=== Speeding Up Production ===");
+            
+            var zoneManager = ZoneManager.Instance;
+            if (zoneManager == null)
+            {
+                Log("ZoneManager not found!");
+                return;
+            }
+
+            var activeBuilding = zoneManager.GetActiveBuilding();
+            if (activeBuilding == null)
+            {
+                Log("No active building selected!");
+                return;
+            }
+
+            var buildingPopup = FindObjectOfType<BuildingPopup>();
+            if (buildingPopup != null)
+            {
+                buildingPopup.SpeedUp();
+                Log("Production time reduced to 5 seconds remaining");
+            }
+            else
+            {
+                Log("BuildingPopup not found!");
             }
         }
     }

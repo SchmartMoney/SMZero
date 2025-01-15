@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Linq;
+using System;
 
 namespace SMZero
 {
@@ -31,6 +32,10 @@ namespace SMZero
             ValidateReferences();
             SetupListeners();
             Hide(); // Initial hide
+            
+            // Start periodic timer update
+            InvokeRepeating("UpdateProductionTimer", 0f, 1f);
+            
             isInitialized = true;
         }
 
@@ -144,12 +149,27 @@ namespace SMZero
         {
             if (currentBuilding == null || timerText == null || collectButton == null) return;
 
+            if (!currentBuilding.IsProducing)
+            {
+                timerText.gameObject.SetActive(true);
+                timerText.text = "No Production";
+                collectButton.gameObject.SetActive(false);
+                return;
+            }
+
             float remainingTime = currentBuilding.GetRemainingProductionTime();
-            timerText.text = remainingTime > 0 
-                ? $"Production Time: {FormatTime(remainingTime)}"
-                : "Ready to Collect!";
+            bool isComplete = remainingTime <= 0;
+
+            // Show/hide UI elements based on production state
+            timerText.gameObject.SetActive(!isComplete);
+            collectButton.gameObject.SetActive(isComplete);
             
-            collectButton.interactable = remainingTime <= 0;
+            if (!isComplete)
+            {
+                timerText.text = $"Production Time: {FormatTime(remainingTime)}";
+            }
+            
+            collectButton.interactable = isComplete;
         }
         
         private void UpdateCharacterSlots()
@@ -236,6 +256,40 @@ namespace SMZero
         {
             if (closeButton != null) closeButton.onClick.RemoveAllListeners();
             if (collectButton != null) collectButton.onClick.RemoveAllListeners();
+            CancelInvoke("UpdateProductionTimer");
+        }
+
+        public void SpeedUp()
+        {
+            if (currentBuilding == null) return;
+
+            // Get current state
+            var gameState = GameStateManager.Instance?.GetCurrentState();
+            if (gameState?.ZonesState?.ZonesList != null)
+            {
+                var zoneState = gameState.ZonesState.ZonesList.Find(z => z.Id == currentBuilding.ZoneId);
+                if (zoneState != null)
+                {
+                    var buildingState = zoneState.Buildings.Find(b => b.Id == currentBuilding.BuildingId);
+                    if (buildingState?.Production != null)
+                    {
+                        // Set end time to 5 seconds from now
+                        var now = DateTimeOffset.UtcNow;
+                        var newEndTime = now.AddSeconds(5);
+                        
+                        // Set start time to make it appear as if production has been running for 59m55s
+                        var newStartTime = newEndTime.AddSeconds(-3600); // 1 hour ago
+                        
+                        currentBuilding.SpeedUpProduction();
+
+                        buildingState.Production.EndTimestamp = newEndTime.ToUnixTimeSeconds();
+                        buildingState.Production.StartTimestamp = newStartTime.ToUnixTimeSeconds();
+                        
+                        // Update the game state
+                        GameStateManager.Instance.ExportGameState();
+                    }
+                }
+            }
         }
     }
 } 

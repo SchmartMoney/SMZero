@@ -1,33 +1,34 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System;
 using System.Linq;
-using Exoa.Cameras;
-using Exoa.Events;
+using System;
 using Exoa.Touch;
+using Exoa.Events;
+using Exoa.Cameras;
 
 namespace SMZero
 {
     public class Building : MonoBehaviour
     {
-        [Header("Settings")]
-        [SerializeField] private float baseProductionTime = 10f; // 10 seconds for testing
-        [SerializeField] private int baseFortuneAmount = 100;
-        [SerializeField] private string buildingId = "vault-avenue-001"; // Main Vault Avenue NFT
-        [SerializeField] private string zoneId = "vault_avenue"; // Default to Vault Avenue zone
-        [SerializeField] private Sprite buildingSprite; // Building sprite for UI
-
-        [Header("Colors")]
-        [SerializeField] private Color activeColor = Color.yellow;
-        [SerializeField] private Color inactiveColor = Color.gray;
+        private const float BASE_PRODUCTION_TIME = 3600f; // 1 hour in seconds
+        private const float BASE_FORTUNE_AMOUNT = 50f;
         
-        private bool isActive;
-        private List<CharacterNFT> stakedCharacters = new List<CharacterNFT>();
-        private float currentProductionTime;
-        private bool isProducing;
-        private bool canCollect;
+        [SerializeField] private string buildingId;
+        [SerializeField] private string zoneId;
+        [SerializeField] private Sprite buildingSprite;
+        
         private LocationHighlight locationHighlight;
         private GameStateManager gameStateManager;
+        private List<CharacterNFT> stakedCharacters = new List<CharacterNFT>();
+        
+        private bool isActive;
+        private bool isProducing;
+        private bool canCollect;
+        private float currentProductionTime;
+        private float baseProductionTime = BASE_PRODUCTION_TIME;
+        private int baseFortuneAmount = (int)BASE_FORTUNE_AMOUNT;
+        private float productionProgress;
+        private float lastUpdateTime;
 
         // Public properties for UI
         public bool IsActive => isActive;
@@ -39,16 +40,13 @@ namespace SMZero
         public int BaseFortuneAmount => baseFortuneAmount;
         public string BuildingId => buildingId;
         public string ZoneId => zoneId;
-
-        public List<string> GetStakedCharacterIds()
-        {
-            return stakedCharacters.Select(c => c.Id).ToList();
-        }
+        public float ProductionProgress => productionProgress;
 
         private void Awake()
         {
             locationHighlight = GetComponent<LocationHighlight>();
             gameStateManager = GameStateManager.Instance;
+            lastUpdateTime = Time.time;
             
             if (locationHighlight == null)
             {
@@ -62,207 +60,142 @@ namespace SMZero
                 collider.isTrigger = true;
             }
 
-            // Validate building ID
-            ValidateBuildingId();
-
-            LoadState();
-        }
-
-        private void ValidateBuildingId()
-        {
-            Debug.Log($"Building ID: {buildingId}");
-            if (string.IsNullOrEmpty(buildingId))
-            {
-                Debug.LogError($"Building {gameObject.name} has no ID set!");
-                return;
-            }
-
-            // Expected formats:
-            // Main building: "vault-avenue-001"
-            // Other buildings: "vault-avenue-002" through "vault-avenue-010"
-            if (buildingId == "vault-avenue-001")
-            {
-                Debug.Log("This is the main Vault Avenue building");
-            }
-            else if (buildingId.StartsWith("vault-avenue-"))
-            {
-                string numberPart = buildingId.Replace("vault-avenue-", "");
-                if (int.TryParse(numberPart, out int buildingNumber))
-                {
-                    if (buildingNumber >= 2 && buildingNumber <= 10)
-                    {
-                        Debug.Log($"This is Vault Avenue building #{buildingNumber}");
-                    }
-                    else
-                    {
-                        Debug.LogError($"Invalid building number: {buildingNumber}. Should be between 2 and 10.");
-                    }
-                }
-                else
-                {
-                    Debug.LogError($"Invalid building ID format: {buildingId}");
-                }
-            }
-            else
-            {
-                Debug.LogError($"Invalid building ID format: {buildingId}. Should be either 'vault-avenue-001' or 'vault-avenue-XXX' where XXX is 002-010");
-            }
+            // Load state after a short delay to ensure all managers are initialized
+            Invoke(nameof(LoadState), 0.2f);
         }
 
         private void LoadState()
         {
-            Debug.Log($"=== Loading Building State for {buildingId} ===");
-            if (gameStateManager == null)
-            {
-                Debug.LogWarning("GameStateManager not found during building state load");
-                return;
-            }
+            if (gameStateManager == null) return;
 
             var gameState = gameStateManager.GetCurrentState();
             if (gameState?.ZonesState?.ZonesList != null)
             {
                 var zoneState = gameState.ZonesState.ZonesList.Find(z => z.Id == zoneId);
-                Debug.Log($"Found zone state? {zoneState != null}");
-                
                 if (zoneState != null)
                 {
-                    var state = zoneState.Buildings.Find(b => b.Id == buildingId);
-                    Debug.Log($"Found building state? {state != null}");
-                    
-                    if (state != null)
+                    var buildingState = zoneState.Buildings.Find(b => b.Id == buildingId);
+                    if (buildingState != null)
                     {
-                        // Restore building active state
-                        isActive = state.IsActive;
-                        Debug.Log($"Restored building active state: {isActive}");
+                        Debug.Log($"Loading state for building {buildingId}");
                         
+                        // Restore active state
+                        isActive = buildingState.IsActive;
+                        if (locationHighlight != null)
+                        {
+                            locationHighlight.SetHighlightColor(isActive ? Color.yellow : Color.gray);
+                            locationHighlight.SetInteractable(isActive);
+                        }
+
                         // Restore staked characters
                         stakedCharacters.Clear();
-                        foreach (var characterId in state.StakedCharacterIds)
+                        var marketplaceManager = MarketplaceManager.Instance;
+                        if (marketplaceManager != null)
                         {
-                            // Get character NFT from marketplace inventory
-                            var nft = MarketplaceManager.Instance.GetCharacterNFTById(characterId);
-                            if (nft != null)
+                            foreach (var characterId in buildingState.StakedCharacterIds)
                             {
-                                stakedCharacters.Add(nft);
-                                Debug.Log($"Restored staked character: {characterId}");
+                                var character = marketplaceManager.GetCharacterNFTById(characterId);
+                                if (character != null)
+                                {
+                                    stakedCharacters.Add(character);
+                                    character.InitializeRuntime();
+                                }
+                            }
+                        }
+
+                        // Restore production state if active and has characters
+                        if (buildingState.Production != null && isActive && stakedCharacters.Count > 0)
+                        {
+                            UpdateProductionModifiers();
+                            
+                            // Calculate remaining production time
+                            long currentTime = (long)GetCurrentTimestamp();
+                            long startTime = buildingState.Production.StartTimestamp;
+                            long endTime = buildingState.Production.EndTimestamp;
+                            
+                            if (currentTime >= endTime)
+                            {
+                                // Production is complete
+                                isProducing = true;
+                                canCollect = true;
+                                productionProgress = currentProductionTime;
+                            }
+                            else if (currentTime > startTime)
+                            {
+                                // Production is in progress
+                                isProducing = true;
+                                canCollect = false;
+                                productionProgress = (currentTime - startTime);
+                            }
+                            else
+                            {
+                                // Start new production
+                                StartProduction();
                             }
                         }
                         
-                        Debug.Log($"Restored {stakedCharacters.Count} staked characters");
-                        
-                        // Update visuals based on restored state
-                        UpdateVisuals();
-                        
-                        // Restart production if building was active and has characters
-                        if (isActive && stakedCharacters.Count > 0)
-                        {
-                            StartProduction();
-                        }
-                    }
-                    else
-                    {
-                        // No saved state, ensure building starts inactive
-                        isActive = false;
-                        stakedCharacters.Clear();
-                        UpdateVisuals();
-                        Debug.Log($"No saved state found for building {buildingId}, starting inactive");
+                        Debug.Log($"Building state loaded - Active: {isActive}, Characters: {stakedCharacters.Count}, Producing: {isProducing}");
                     }
                 }
             }
-        }
-
-        private void SaveState()
-        {
-            if (gameStateManager == null) return;
-
-            var state = new BuildingState
-            {
-                Id = buildingId,
-                IsActive = isActive,
-                StakedCharacterIds = new List<string>(),
-                Production = new ProductionState
-                {
-                    StartTimestamp = (long)GetCurrentTimestamp(),
-                    EndTimestamp = (long)(GetCurrentTimestamp() + currentProductionTime),
-                    AssetValue = baseFortuneAmount
-                }
-            };
-
-            // Save staked character IDs
-            foreach (var character in stakedCharacters)
-            {
-                state.StakedCharacterIds.Add(character.Id);
-            }
-
-            // Update the state in the zones state
-            var gameState = gameStateManager.GetCurrentState();
-            if (gameState?.ZonesState?.ZonesList != null)
-            {
-                var zoneState = gameState.ZonesState.ZonesList.Find(z => z.Id == zoneId);
-                if (zoneState != null)
-                {
-                    var building = zoneState.Buildings.Find(b => b.Id == buildingId);
-                    if (building != null)
-                    {
-                        building.IsActive = state.IsActive;
-                        building.StakedCharacterIds = state.StakedCharacterIds;
-                        building.Production = state.Production;
-                    }
-                    else
-                    {
-                        zoneState.Buildings.Add(state);
-                    }
-                    gameStateManager.ExportGameState();
-                }
-            }
-        }
-
-        private double GetCurrentTimestamp()
-        {
-            return DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         }
 
         private void Update()
         {
-            if (!isActive || !isProducing) return;
+            if (!isProducing || !isActive) return;
 
-            if (currentProductionTime > 0)
+            float deltaTime = Time.time - lastUpdateTime;
+            lastUpdateTime = Time.time;
+
+            // Update production progress
+            if (!canCollect)
             {
-                currentProductionTime -= Time.deltaTime;
-                if (currentProductionTime <= 0)
+                productionProgress += deltaTime;
+                if (productionProgress >= currentProductionTime)
                 {
                     canCollect = true;
-                    isProducing = false;
-                    SaveState();
+                    productionProgress = currentProductionTime;
+                }
+            }
+
+            // Update character passive income
+            foreach (var character in stakedCharacters)
+            {
+                character.accumulatedIncome += character.progressRate * deltaTime;
+                if (character.accumulatedIncome >= 1f) // Collect when at least 1 FD accumulated
+                {
+                    int amount = Mathf.FloorToInt(character.accumulatedIncome);
+                    PlayerProgress.Instance.AddFortuneDollars(amount);
+                    character.accumulatedIncome -= amount;
                 }
             }
         }
 
-        public void SetActive(bool active)
+        private void UpdateProductionModifiers()
         {
-            isActive = active;
-            UpdateVisuals();
-            SaveState();
+            float speedModifier = 1f;
+            float amountModifier = 1f;
 
-            // Stop production if building is deactivated
-            if (!active)
+            foreach (var character in stakedCharacters)
             {
-                StopProduction();
+                // Emily reduces production time by 15%
+                if (character.Name == "Emily")
+                {
+                    speedModifier = 0.85f;
+                }
+                // Jake doubles asset value
+                if (character.Name == "Jake")
+                {
+                    amountModifier = 2f;
+                }
             }
-        }
 
-        private void UpdateVisuals()
-        {
-            if (locationHighlight != null)
-            {
-                locationHighlight.SetHighlightColor(isActive ? activeColor : inactiveColor);
-                locationHighlight.SetInteractable(isActive);
-            }
-        }
-
-        public bool CanAddCharacter()
-        {
-            return stakedCharacters.Count < 3;
+            // Apply modifiers
+            currentProductionTime = BASE_PRODUCTION_TIME * speedModifier;
+            baseFortuneAmount = Mathf.RoundToInt(BASE_FORTUNE_AMOUNT * amountModifier);
+            
+            Debug.Log($"Production modifiers updated - Speed: {speedModifier}, Amount: {amountModifier}");
+            Debug.Log($"New production values - Time: {currentProductionTime}s, Amount: {baseFortuneAmount}FD");
         }
 
         public void StakeCharacter(CharacterNFT character)
@@ -274,6 +207,7 @@ namespace SMZero
             }
             
             stakedCharacters.Add(character);
+            character.InitializeRuntime(); // Reset accumulated income
             UpdateProductionModifiers();
             
             // Activate building when first character is staked
@@ -312,7 +246,7 @@ namespace SMZero
             }
 
             isProducing = true;
-            currentProductionTime = baseProductionTime;
+            productionProgress = 0f;
             canCollect = false;
             SaveState();
         }
@@ -320,26 +254,8 @@ namespace SMZero
         private void StopProduction()
         {
             isProducing = false;
-            currentProductionTime = 0f;
+            productionProgress = 0f;
             canCollect = false;
-            SaveState();
-        }
-
-        private void UpdateProductionModifiers()
-        {
-            // Calculate production modifiers based on staked characters
-            float speedModifier = 1f;
-            float amountModifier = 1f;
-
-            foreach (var character in stakedCharacters)
-            {
-                speedModifier += character.SpeedModifier;
-                amountModifier += character.AmountModifier;
-            }
-
-            // Apply modifiers to production values
-            currentProductionTime = baseProductionTime / speedModifier;
-            baseFortuneAmount = Mathf.RoundToInt(baseFortuneAmount * amountModifier);
             SaveState();
         }
 
@@ -352,7 +268,89 @@ namespace SMZero
             
             // Reset production
             canCollect = false;
+            productionProgress = 0f;
             StartProduction();
+        }
+
+        public float GetRemainingProductionTime()
+        {
+            if (!isProducing || canCollect) return 0f;
+            return currentProductionTime - productionProgress;
+        }
+
+
+        public void SpeedUpProduction()
+        {
+            if (!isProducing || canCollect) return;
+            productionProgress = currentProductionTime - 5f;
+            SaveState();
+        }
+
+        public void SetActive(bool active)
+        {
+            isActive = active;
+            if (locationHighlight != null)
+            {
+                locationHighlight.SetHighlightColor(active ? Color.yellow : Color.gray);
+                locationHighlight.SetInteractable(active);
+            }
+            SaveState();
+
+            // Stop production if building is deactivated
+            if (!active)
+            {
+                StopProduction();
+            }
+        }
+
+        private void SaveState()
+        {
+            if (gameStateManager == null) return;
+
+            var state = new BuildingState
+            {
+                Id = buildingId,
+                IsActive = isActive,
+                StakedCharacterIds = stakedCharacters.Select(c => c.Id).ToList(),
+                Production = new ProductionState
+                {
+                    StartTimestamp = (long)GetCurrentTimestamp(),
+                    EndTimestamp = (long)(GetCurrentTimestamp() + (currentProductionTime - productionProgress)),
+                    AssetValue = baseFortuneAmount
+                }
+            };
+
+            // Update the state in the zones state
+            var gameState = gameStateManager.GetCurrentState();
+            if (gameState?.ZonesState?.ZonesList != null)
+            {
+                var zoneState = gameState.ZonesState.ZonesList.Find(z => z.Id == zoneId);
+                if (zoneState != null)
+                {
+                    var building = zoneState.Buildings.Find(b => b.Id == buildingId);
+                    if (building != null)
+                    {
+                        building.IsActive = state.IsActive;
+                        building.StakedCharacterIds = state.StakedCharacterIds;
+                        building.Production = state.Production;
+                    }
+                    else
+                    {
+                        zoneState.Buildings.Add(state);
+                    }
+                    gameStateManager.ExportGameState();
+                }
+            }
+        }
+
+        private double GetCurrentTimestamp()
+        {
+            return DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        }
+
+        public List<string> GetStakedCharacterIds()
+        {
+            return stakedCharacters.Select(c => c.Id).ToList();
         }
 
         public Sprite GetBuildingSprite()
@@ -360,31 +358,10 @@ namespace SMZero
             return buildingSprite;
         }
 
-        public float GetRemainingProductionTime()
-        {
-            if (!isProducing) return 0f;
-            return Mathf.Max(0f, currentProductionTime);
-        }
-
         public void CollectAssets()
         {
-            if (!canCollect) return;
-            
-            // Add fortune dollars to player progress
-            PlayerProgress.Instance.AddFortuneDollars(baseFortuneAmount);
-            
-            // Reset production
-            currentProductionTime = 0f;
-            isProducing = false;
-            canCollect = false;
-            
-            // Start new production if building is active and has characters
-            if (isActive && stakedCharacters.Count > 0)
-            {
-                StartProduction();
-            }
-            
-            SaveState();
+            // This is just an alias for CollectAsset to maintain backward compatibility
+            CollectAsset();
         }
 
         private void OnEnable()
@@ -414,5 +391,7 @@ namespace SMZero
                 }
             }
         }
+
+        // ... rest of the existing code ...
     }
 } 
