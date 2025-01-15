@@ -15,16 +15,9 @@ namespace SMZero
             {
                 if (instance == null)
                 {
-                    instance = FindObjectOfType<MarketplaceManager>();
-                    if (instance == null)
-                    {
-                        Debug.Log("Creating new MarketplaceManager instance");
-                        GameObject go = new GameObject("MarketplaceManager");
-                        instance = go.AddComponent<MarketplaceManager>();
-                        
-                        // Load sprites when creating instance dynamically
-                        instance.LoadSprites();
-                    }
+                    var go = new GameObject("MarketplaceManager");
+                    instance = go.AddComponent<MarketplaceManager>();
+                    DontDestroyOnLoad(go);
                 }
                 return instance;
             }
@@ -36,12 +29,12 @@ namespace SMZero
         private MarketplaceState currentState;
 
         [Header("Character NFTs")]
-        [SerializeField] private Sprite richardSprite;
-        [SerializeField] private Sprite emilySprite;
-        [SerializeField] private Sprite jakeSprite;
+        private Sprite richardSprite;
+        private Sprite emilySprite;
+        private Sprite jakeSprite;
 
         [Header("Zone NFTs")]
-        [SerializeField] private Sprite vaultAvenueSprite;
+        private Sprite vaultAvenueSprite;
 
         private List<NFTDisplayData> listings = new List<NFTDisplayData>();
         private PlayerInventory playerInventory = new PlayerInventory();
@@ -60,13 +53,22 @@ namespace SMZero
             }
             
             instance = this;
-            DontDestroyOnLoad(gameObject);
             
             if (!hasInitialized)
             {
+                LoadSprites();
                 InitializeMarketplace();
                 hasInitialized = true;
             }
+        }
+
+        private void LoadSprites()
+        {
+            Debug.Log("Loading NFT sprites from Resources...");
+            richardSprite = Resources.Load<Sprite>("NFTs/Characters/Richard");
+            emilySprite = Resources.Load<Sprite>("NFTs/Characters/Emily");
+            jakeSprite = Resources.Load<Sprite>("NFTs/Characters/Jake");
+            vaultAvenueSprite = Resources.Load<Sprite>("NFTs/Zones/VaultAvenue");
         }
 
         private void ValidateSprites()
@@ -74,22 +76,22 @@ namespace SMZero
             Debug.Log("Validating NFT sprites...");
             if (richardSprite == null)
             {
-                Debug.LogError("Richard sprite is missing!");
+                Debug.LogError("Richard sprite failed to load from Resources!");
                 return;
             }
             if (emilySprite == null)
             {
-                Debug.LogError("Emily sprite is missing!");
+                Debug.LogError("Emily sprite failed to load from Resources!");
                 return;
             }
             if (jakeSprite == null)
             {
-                Debug.LogError("Jake sprite is missing!");
+                Debug.LogError("Jake sprite failed to load from Resources!");
                 return;
             }
             if (vaultAvenueSprite == null)
             {
-                Debug.LogError("Vault Avenue sprite is missing!");
+                Debug.LogError("Vault Avenue sprite failed to load from Resources!");
                 return;
             }
 
@@ -585,25 +587,6 @@ namespace SMZero
                 return new List<CharacterNFT>();
 
             return characterNFTs.Where(c => currentState.PlayerInventory.OwnedCharacterIds.Contains(c.Id)).ToList();
-        }
-
-        private void LoadSprites()
-        {
-            Debug.Log("Loading NFT sprites...");
-            
-            // Load character sprites
-            richardSprite = Resources.Load<Sprite>("NFTs/Characters/Richard");
-            emilySprite = Resources.Load<Sprite>("NFTs/Characters/Emily");
-            jakeSprite = Resources.Load<Sprite>("NFTs/Characters/Jake");
-            
-            // Load zone sprites
-            vaultAvenueSprite = Resources.Load<Sprite>("NFTs/Zones/VaultAvenue");
-            
-            // Log results
-            Debug.Log($"Loaded sprites - Richard: {(richardSprite != null ? "Success" : "Failed")}, " +
-                     $"Emily: {(emilySprite != null ? "Success" : "Failed")}, " +
-                     $"Jake: {(jakeSprite != null ? "Success" : "Failed")}, " +
-                     $"VaultAve: {(vaultAvenueSprite != null ? "Success" : "Failed")}");
         }
     }
 } 

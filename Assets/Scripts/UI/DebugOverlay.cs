@@ -15,12 +15,7 @@ namespace SMZero
             {
                 if (instance == null)
                 {
-                    instance = FindObjectOfType<DebugOverlay>();
-                    if (instance == null)
-                    {
-                        GameObject go = new GameObject("DebugOverlay");
-                        instance = go.AddComponent<DebugOverlay>();
-                    }
+                    instance = GameManagers.Instance.Debug;
                 }
                 return instance;
             }
@@ -32,7 +27,7 @@ namespace SMZero
         [SerializeField] private Button showStateButton;
         private Queue<string> logLines = new Queue<string>();
         private const int MaxLines = 50;
-        private bool isVisible = true;
+        private bool isVisible = false;
 
         private void Awake()
         {
@@ -43,12 +38,17 @@ namespace SMZero
             }
 
             instance = this;
-            DontDestroyOnLoad(gameObject);
 
             // Create UI if not set
             if (overlayPanel == null)
             {
                 CreateDebugUI();
+            }
+            
+            // Ensure we start minimized
+            if (overlayPanel != null)
+            {
+                overlayPanel.SetActive(false);
             }
         }
 

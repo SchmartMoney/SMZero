@@ -1,9 +1,9 @@
 using UnityEngine;
-using System.Xml.Serialization;
 using System.IO;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Newtonsoft.Json;
 
 namespace SMZero
 {
@@ -11,7 +11,6 @@ namespace SMZero
     {
         private static GameStateManager instance;
         public const string LOCAL_SAVE_KEY = "SMZeroGameState";
-        private const string CLOUD_SAVE_KEY = "SMZeroGameState";
         
         public static GameStateManager Instance
         {
@@ -19,12 +18,7 @@ namespace SMZero
             {
                 if (instance == null)
                 {
-                    instance = FindObjectOfType<GameStateManager>();
-                    if (instance == null)
-                    {
-                        GameObject go = new GameObject("GameStateManager");
-                        instance = go.AddComponent<GameStateManager>();
-                    }
+                    instance = GameManagers.Instance.GameState;
                 }
                 return instance;
             }
@@ -33,12 +27,13 @@ namespace SMZero
         private GameState currentState;
         private static GameState persistentState;
 
-        // JavaScript interface for Telegram Web App
+        #if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")]
-        private static extern void SaveToCloud(string key, string data);
+        private static extern void SaveToLocal(string key, string data);
 
         [DllImport("__Internal")]
-        private static extern string LoadFromCloud(string key);
+        private static extern string LoadFromLocal(string key);
+        #endif
 
         private void Awake()
         {
@@ -49,64 +44,73 @@ namespace SMZero
             }
 
             instance = this;
-            DontDestroyOnLoad(gameObject);
-            
-            // Delay initialization to ensure other managers are ready
             Invoke(nameof(InitializeState), 0.1f);
         }
 
-        private void SaveToLocal(string stateData)
+        private void SaveState(string key, string data)
         {
-            PlayerPrefs.SetString(LOCAL_SAVE_KEY, stateData);
-            PlayerPrefs.Save();
-            DebugOverlay.Instance.Log("State saved to local storage");
+            try
+            {
+                #if UNITY_WEBGL && !UNITY_EDITOR
+                SaveToLocal(key, data);
+                #else
+                PlayerPrefs.SetString(key, data);
+                PlayerPrefs.Save();
+                #endif
+                DebugOverlay.Instance?.Log("Game state saved successfully");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"Failed to save state: {e.Message}");
+                DebugOverlay.Instance?.Log($"Failed to save state: {e.Message}");
+            }
         }
 
-        private string LoadFromLocal()
+        private string LoadState(string key)
         {
-            return PlayerPrefs.GetString(LOCAL_SAVE_KEY);
+            try
+            {
+                #if UNITY_WEBGL && !UNITY_EDITOR
+                return LoadFromLocal(key);
+                #else
+                return PlayerPrefs.GetString(key);
+                #endif
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"Failed to load state: {e.Message}");
+                DebugOverlay.Instance?.Log($"Failed to load state: {e.Message}");
+                return null;
+            }
         }
 
         private void InitializeState()
         {
-            Debug.Log("=== Initializing Game State ===");
-            
-            // Try to load saved state first
             bool loadedState = false;
             try
             {
-                // Try loading from cloud first
-                string stateData = null;
-                try
-                {
-                    stateData = LoadFromCloud(CLOUD_SAVE_KEY);
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogWarning($"Failed to load from cloud: {e.Message}");
-                }
-
-                // If cloud load failed, try local storage
-                if (string.IsNullOrEmpty(stateData))
-                {
-                    stateData = LoadFromLocal();
-                }
-
+                string stateData = LoadState(LOCAL_SAVE_KEY);
+                
                 // If we have state data, deserialize it
                 if (!string.IsNullOrEmpty(stateData))
                 {
-                    var serializer = new XmlSerializer(typeof(GameState));
-                    using (var reader = new StringReader(stateData))
+                    try
                     {
-                        currentState = (GameState)serializer.Deserialize(reader);
+                        currentState = JsonConvert.DeserializeObject<GameState>(stateData);
                         loadedState = true;
                         Debug.Log("Successfully loaded saved game state");
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogWarning($"Failed to deserialize state data: {e.Message}");
+                        DebugOverlay.Instance?.Log($"Failed to deserialize state data: {e.Message}");
                     }
                 }
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"Failed to load saved state: {e.Message}");
+                Debug.LogWarning($"Failed to load saved state: {e.Message}");
+                DebugOverlay.Instance?.Log($"Failed to load saved state: {e.Message}");
             }
 
             // If no saved state was loaded, initialize with defaults
@@ -115,7 +119,7 @@ namespace SMZero
                 Debug.Log("No saved state found, initializing with defaults");
                 currentState = new GameState
                 {
-                    PlayerBalance = 1000f, // Default starting balance
+                    PlayerBalance = 1000f,
                     PlayerInventory = new PlayerInventory
                     {
                         OwnedCharacterIds = new List<string>(),
@@ -137,7 +141,7 @@ namespace SMZero
             }
             else
             {
-                Debug.LogError("Failed to get PlayerProgress instance!");
+                Debug.LogWarning("Failed to get PlayerProgress instance!");
             }
 
             // Initialize marketplace with current state's inventory
@@ -164,7 +168,7 @@ namespace SMZero
         {
             try
             {
-                DebugOverlay.Instance.Log("=== Exporting Game State ===");
+                DebugOverlay.Instance?.Log("=== Exporting Game State ===");
                 
                 // Sync current state with latest data
                 if (currentState != null)
@@ -173,7 +177,7 @@ namespace SMZero
                     if (PlayerProgress.Instance != null)
                     {
                         currentState.PlayerBalance = PlayerProgress.Instance.GetFortuneDollars();
-                        DebugOverlay.Instance.Log($"Updated balance to: {currentState.PlayerBalance}");
+                        DebugOverlay.Instance?.Log($"Updated balance to: {currentState.PlayerBalance}");
                     }
                     
                     // Update inventory from MarketplaceManager
@@ -183,46 +187,26 @@ namespace SMZero
                         if (marketplaceState?.PlayerInventory != null)
                         {
                             currentState.PlayerInventory = marketplaceState.PlayerInventory;
-                            DebugOverlay.Instance.Log($"Updated inventory from MarketplaceManager");
+                            DebugOverlay.Instance?.Log($"Updated inventory from MarketplaceManager");
                         }
                     }
                 }
 
-                var serializer = new XmlSerializer(typeof(GameState));
-                using (var writer = new StringWriter())
-                {
-                    serializer.Serialize(writer, currentState);
-                    string stateData = writer.ToString();
-                    
-                    DebugOverlay.Instance.Log($"State to save: {stateData}");
-                    
-                    // Try to save to cloud first
-                    bool cloudSaveFailed = false;
-                    try
-                    {
-                        SaveToCloud(CLOUD_SAVE_KEY, stateData);
-                        DebugOverlay.Instance.Log("Game state exported successfully to cloud");
-                    }
-                    catch (System.Exception e)
-                    {
-                        DebugOverlay.Instance.Log($"Failed to save to cloud: {e.Message}\nFalling back to local storage...");
-                        cloudSaveFailed = true;
-                    }
-
-                    // If cloud save failed, save locally
-                    if (cloudSaveFailed)
-                    {
-                        SaveToLocal(stateData);
-                    }
-
-                    persistentState = currentState;
-                    LogGameState("Game state exported successfully", currentState);
-                }
-                DebugOverlay.Instance.Log("=== Export Complete ===");
+                string stateData = JsonConvert.SerializeObject(currentState, new JsonSerializerSettings 
+                { 
+                    NullValueHandling = NullValueHandling.Ignore,
+                    DefaultValueHandling = DefaultValueHandling.Ignore
+                });
+                
+                SaveState(LOCAL_SAVE_KEY, stateData);
+                persistentState = currentState;
+                LogGameState("Game state exported successfully", currentState);
+                DebugOverlay.Instance?.Log("=== Export Complete ===");
             }
             catch (System.Exception e)
             {
-                DebugOverlay.Instance.Log($"Failed to export game state: {e.Message}\n{e.StackTrace}");
+                Debug.LogWarning($"Failed to export game state: {e.Message}\n{e.StackTrace}");
+                DebugOverlay.Instance?.Log($"Failed to export game state: {e.Message}");
             }
         }
 
@@ -288,8 +272,13 @@ namespace SMZero
     [System.Serializable]
     public class GameState
     {
+        [JsonProperty("b")]
         public float PlayerBalance { get; set; }
+        
+        [JsonProperty("i")]
         public PlayerInventory PlayerInventory { get; set; }
+        
+        [JsonProperty("z")]
         public ZonesState ZonesState { get; set; }
 
         public GameState()
@@ -303,32 +292,52 @@ namespace SMZero
     [System.Serializable]
     public class ZonesState
     {
+        [JsonProperty("l")]
         public List<ZoneStateEntry> ZonesList { get; set; } = new List<ZoneStateEntry>();
     }
 
     [System.Serializable]
     public class ZoneStateEntry
     {
+        [JsonProperty("i")]
         public string Id { get; set; }
+        
+        [JsonProperty("n")]
         public string DisplayName { get; set; }
+        
+        [JsonProperty("a")]
         public bool IsActive { get; set; }
+        
+        [JsonProperty("b")]
         public List<BuildingState> Buildings { get; set; } = new List<BuildingState>();
     }
 
     [System.Serializable]
     public class BuildingState
     {
+        [JsonProperty("i")]
         public string Id { get; set; }
+        
+        [JsonProperty("a")]
         public bool IsActive { get; set; }
+        
+        [JsonProperty("c")]
         public List<string> StakedCharacterIds { get; set; } = new List<string>();
+        
+        [JsonProperty("p")]
         public ProductionState Production { get; set; }
     }
 
     [System.Serializable]
     public class ProductionState
     {
+        [JsonProperty("s")]
         public long StartTimestamp { get; set; }
+        
+        [JsonProperty("e")]
         public long EndTimestamp { get; set; }
+        
+        [JsonProperty("v")]
         public float AssetValue { get; set; }
     }
 } 

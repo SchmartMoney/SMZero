@@ -8,7 +8,8 @@
         "Exoa.Touch",
         "Exoa.Common",
         "Exoa.Commons.Scripts.Touch",
-        "Exoa.TouchCameraPro.Scripts"
+        "Exoa.TouchCameraPro.Scripts",
+        "Unity.Nuget.Newtonsoft.Json"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

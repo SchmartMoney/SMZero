@@ -101644,9 +101644,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dd6d54cd335c4b42b05309b63e5f5c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  popupMenu: {fileID: 1863938923}
-  cancelButton: {fileID: 0}
-  globalVolume: {fileID: 496846064}
 --- !u!65 &1777978219
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -110638,9 +110635,6 @@ GameObject:
   - component: {fileID: 1929899163}
   - component: {fileID: 1929899164}
   - component: {fileID: 1929899165}
-  - component: {fileID: 1929899169}
-  - component: {fileID: 1929899168}
-  - component: {fileID: 1929899167}
   - component: {fileID: 1929899166}
   m_Layer: 0
   m_Name: Prototype TS
@@ -110805,53 +110799,6 @@ MonoBehaviour:
   activeColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   marketplaceCanvas: {fileID: 424259031}
---- !u!114 &1929899167
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1929899157}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f20c709a540278f48b28cf74744a6bde, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  fortuneDollars: 1000
---- !u!114 &1929899168
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1929899157}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b4559dfd7997b1a439c27a65b139be7d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1929899169
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1929899157}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d41f2742454166e4e8a6d9dfc7c30324, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  richardSprite: {fileID: 21300000, guid: 693e19a0663926e4691d58e54e8ddbc4, type: 3}
-  emilySprite: {fileID: 21300000, guid: b08ae267c6c413641b401f3d5d571714, type: 3}
-  jakeSprite: {fileID: 21300000, guid: cf0304cf144df2346b99ec47b17149fc, type: 3}
-  vaultAvenueSprite: {fileID: 21300000, guid: 569c09590c1f2b14885b88b83b4cd070, type: 3}
-  OnBalanceChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  OnListingsUpdated:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!1 &1929974778
 GameObject:
   m_ObjectHideFlags: 0
