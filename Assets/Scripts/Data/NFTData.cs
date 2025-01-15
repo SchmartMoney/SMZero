@@ -7,7 +7,8 @@ namespace SMZero
     {
         Common,
         Rare,
-        Epic
+        Epic,
+        Legendary
     }
 
     [System.Serializable]

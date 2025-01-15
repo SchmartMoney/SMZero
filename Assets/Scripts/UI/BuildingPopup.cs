@@ -1,67 +1,241 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Linq;
 
 namespace SMZero
 {
     public class BuildingPopup : MonoBehaviour
     {
         [Header("UI References")]
-        [SerializeField] private TextMeshProUGUI buildingNameText;
+        [SerializeField] private GameObject backgroundPanel;
+        [SerializeField] private TextMeshProUGUI nameText;
         [SerializeField] private TextMeshProUGUI descriptionText;
-        [SerializeField] private GameObject popupPanel;
+        [SerializeField] private Image buildingImage;
+        [SerializeField] private TextMeshProUGUI timerText;
+        [SerializeField] private GameObject characterSlotsContainer;
         [SerializeField] private Button closeButton;
-
+        [SerializeField] private Button collectButton;
+        [SerializeField] private CanvasGroup canvasGroup;
+        
+        [Header("Character Slots")]
+        [SerializeField] private CharacterSlotUI[] characterSlots;
+        
         private Building currentBuilding;
-
+        private bool isInitialized = false;
+        
         private void Awake()
         {
-            ValidateComponents();
-            closeButton.onClick.AddListener(Hide);
+            if (isInitialized) return;
+            
+            ValidateReferences();
+            SetupListeners();
+            Hide(); // Initial hide
+            isInitialized = true;
         }
 
-        private void ValidateComponents()
+        private void ValidateReferences()
         {
-            if (buildingNameText == null)
-                Debug.LogError($"BuildingPopup {gameObject.name} is missing buildingNameText reference!");
-            if (descriptionText == null)
-                Debug.LogError($"BuildingPopup {gameObject.name} is missing descriptionText reference!");
-            if (popupPanel == null)
-                Debug.LogError($"BuildingPopup {gameObject.name} is missing popupPanel reference!");
-            if (closeButton == null)
-                Debug.LogError($"BuildingPopup {gameObject.name} is missing closeButton reference!");
+            if (backgroundPanel == null) Debug.LogError($"[{gameObject.name}] Background panel is missing!");
+            if (nameText == null) Debug.LogError($"[{gameObject.name}] Name text is missing!");
+            if (buildingImage == null) Debug.LogError($"[{gameObject.name}] Building image is missing!");
+            if (timerText == null) Debug.LogError($"[{gameObject.name}] Timer text is missing!");
+            if (characterSlotsContainer == null) Debug.LogError($"[{gameObject.name}] Character slots container is missing!");
+            if (closeButton == null) Debug.LogError($"[{gameObject.name}] Close button is missing!");
+            if (collectButton == null) Debug.LogError($"[{gameObject.name}] Collect button is missing!");
+            if (canvasGroup == null) Debug.LogError($"[{gameObject.name}] Canvas group is missing!");
+            
+            if (characterSlots == null || characterSlots.Length == 0)
+            {
+                Debug.LogError($"[{gameObject.name}] Character slots array is empty!");
+                // Try to find character slots in children
+                characterSlots = characterSlotsContainer?.GetComponentsInChildren<CharacterSlotUI>(true);
+                if (characterSlots == null || characterSlots.Length == 0)
+                {
+                    Debug.LogError($"[{gameObject.name}] Could not find any CharacterSlotUI components in children!");
+                }
+                else
+                {
+                    Debug.Log($"[{gameObject.name}] Found {characterSlots.Length} character slots in children");
+                }
+            }
         }
 
+        private void SetupListeners()
+        {
+            if (closeButton != null)
+            {
+                closeButton.onClick.RemoveAllListeners();
+                closeButton.onClick.AddListener(OnCloseClicked);
+            }
+            
+            if (collectButton != null)
+            {
+                collectButton.onClick.RemoveAllListeners();
+                collectButton.onClick.AddListener(OnCollectClicked);
+            }
+        }
+        
         public void Show(Building building)
         {
+            Debug.Log($"Showing building popup for {building?.BuildingId ?? "null"}");
             if (building == null)
             {
-                Debug.LogError("Attempting to show popup for null building!");
+                Debug.LogError("Cannot show popup: building is null");
                 return;
             }
 
-            currentBuilding = building;
-            UpdateUI();
-            popupPanel.SetActive(true);
-        }
+            if (!isInitialized)
+            {
+                ValidateReferences();
+                SetupListeners();
+                isInitialized = true;
+            }
 
+            currentBuilding = building;
+            
+            // Update UI
+            if (nameText != null) nameText.text = building.BuildingId;
+            if (buildingImage != null) buildingImage.sprite = building.GetBuildingSprite();
+            
+            // Show the UI
+            if (backgroundPanel != null)
+            {
+                backgroundPanel.SetActive(true);
+            }
+            
+            // Only affect this popup's canvas group
+            var popupCanvasGroup = backgroundPanel?.GetComponent<CanvasGroup>();
+            if (popupCanvasGroup != null)
+            {
+                popupCanvasGroup.alpha = 1;
+                popupCanvasGroup.interactable = true;
+                popupCanvasGroup.blocksRaycasts = true;
+            }
+
+            UpdateCharacterSlots();
+            UpdateProductionTimer();
+            
+            Debug.Log("Building popup shown successfully");
+        }
+        
         public void Hide()
         {
+            Debug.Log("Hiding building popup");
             currentBuilding = null;
-            popupPanel.SetActive(false);
+            
+            // Only hide the popup panel, not the entire UI
+            if (backgroundPanel != null)
+            {
+                backgroundPanel.SetActive(false);
+            }
+            
+            // Only affect this popup's canvas group
+            var popupCanvasGroup = backgroundPanel?.GetComponent<CanvasGroup>();
+            if (popupCanvasGroup != null)
+            {
+                popupCanvasGroup.alpha = 0;
+                popupCanvasGroup.interactable = false;
+                popupCanvasGroup.blocksRaycasts = false;
+            }
         }
-
-        private void UpdateUI()
+        
+        private void UpdateProductionTimer()
         {
-            if (currentBuilding == null) return;
+            if (currentBuilding == null || timerText == null || collectButton == null) return;
 
-            buildingNameText.text = currentBuilding.name;
+            float remainingTime = currentBuilding.GetRemainingProductionTime();
+            timerText.text = remainingTime > 0 
+                ? $"Production Time: {FormatTime(remainingTime)}"
+                : "Ready to Collect!";
             
-            string status = currentBuilding.IsActive ? "Active" : "Inactive";
-            string production = currentBuilding.IsProducing ? "Producing" : "Not Producing";
-            string characters = $"Characters: {currentBuilding.StakedCharacters.Count}/3";
-            
-            descriptionText.text = $"Status: {status}\n{production}\n{characters}";
+            collectButton.interactable = remainingTime <= 0;
+        }
+        
+        private void UpdateCharacterSlots()
+        {
+            if (characterSlots == null || characterSlots.Length == 0)
+            {
+                Debug.LogError($"[{gameObject.name}] Cannot update character slots: no slots found");
+                return;
+            }
+
+            var marketplaceManager = MarketplaceManager.Instance;
+            if (marketplaceManager == null)
+            {
+                Debug.LogError("Cannot update character slots: MarketplaceManager not found");
+                return;
+            }
+
+            // Get owned character NFTs
+            var ownedCharacters = marketplaceManager.GetOwnedCharacterNFTs();
+            Debug.Log($"Found {ownedCharacters?.Count ?? 0} owned characters");
+
+            // Update each slot
+            for (int i = 0; i < characterSlots.Length; i++)
+            {
+                var slot = characterSlots[i];
+                if (slot != null)
+                {
+                    // Set up the slot with character info
+                    string characterName = "";
+                    string rarity = "";
+                    bool isInteractable = false;
+
+                    switch (i)
+                    {
+                        case 0:
+                            characterName = "Richard";
+                            rarity = "Rare";
+                            isInteractable = ownedCharacters?.Any(c => c.Id == "richard-nft-001") ?? false;
+                            break;
+                        case 1:
+                            characterName = "Emily";
+                            rarity = "Epic";
+                            isInteractable = ownedCharacters?.Any(c => c.Id == "emily-nft-001") ?? false;
+                            break;
+                        case 2:
+                            characterName = "Jake";
+                            rarity = "Legendary";
+                            isInteractable = ownedCharacters?.Any(c => c.Id == "jake-nft-001") ?? false;
+                            break;
+                    }
+
+                    slot.SetCharacter(characterName, rarity, isInteractable);
+                    Debug.Log($"Updated character slot {i}: {characterName} (Interactable: {isInteractable})");
+                }
+                else
+                {
+                    Debug.LogError($"[{gameObject.name}] Character slot at index {i} is null!");
+                }
+            }
+        }
+        
+        private string FormatTime(float seconds)
+        {
+            int minutes = Mathf.FloorToInt(seconds / 60);
+            int remainingSeconds = Mathf.FloorToInt(seconds % 60);
+            return $"{minutes:00}:{remainingSeconds:00}";
+        }
+        
+        private void OnCloseClicked()
+        {
+            Hide();
+        }
+        
+        private void OnCollectClicked()
+        {
+            if (currentBuilding != null)
+            {
+                currentBuilding.CollectAssets();
+                UpdateProductionTimer();
+            }
+        }
+        
+        private void OnDestroy()
+        {
+            if (closeButton != null) closeButton.onClick.RemoveAllListeners();
+            if (collectButton != null) collectButton.onClick.RemoveAllListeners();
         }
     }
 } 

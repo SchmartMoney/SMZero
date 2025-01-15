@@ -1,94 +1,57 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace SMZero
 {
     public class CharacterSlotUI : MonoBehaviour
     {
-        [Header("UI Components")]
-        [SerializeField] private Image characterIcon;
-        [SerializeField] private Button stakeButton;
-        [SerializeField] private Button unstakeButton;
-
-        private CharacterNFT stakedCharacter;
-
+        public Image characterIcon;
+        public TextMeshProUGUI nameText;
+        public TextMeshProUGUI rarityText;
+        public Button stakeButton;
+        public Button unstakeButton;
+        public CanvasGroup canvasGroup;
+        
         private void Awake()
         {
-            ValidateComponents();
+            if (stakeButton != null) stakeButton.onClick.AddListener(OnStakeClicked);
+            if (unstakeButton != null) unstakeButton.onClick.AddListener(OnUnstakeClicked);
         }
 
-        private void ValidateComponents()
+        public void SetCharacter(string characterName, string rarity, bool isInteractable)
         {
-            if (characterIcon == null)
-            {
-                Debug.LogError($"Character Icon is missing on {gameObject.name}!");
-                characterIcon = transform.Find("NFTIcon")?.GetComponent<Image>();
-            }
-
-            if (stakeButton == null)
-            {
-                Debug.LogError($"Stake Button is missing on {gameObject.name}!");
-                stakeButton = transform.Find("StakeButton")?.GetComponent<Button>();
-            }
-
-            if (unstakeButton == null)
-            {
-                Debug.LogError($"Unstake Button is missing on {gameObject.name}!");
-                unstakeButton = transform.Find("UnstakeButton")?.GetComponent<Button>();
-            }
-        }
-
-        // Public properties
-        public Button StakeButton => stakeButton;
-        public Button UnstakeButton => unstakeButton;
-        public CharacterNFT StakedCharacter => stakedCharacter;
-
-        public void StakeCharacter(CharacterNFT character)
-        {
-            if (character == null)
-            {
-                Debug.LogError("Attempting to stake null character!");
-                return;
-            }
-
-            stakedCharacter = character;
+            if (nameText != null) nameText.text = characterName;
+            if (rarityText != null) rarityText.text = rarity;
             
-            if (characterIcon != null)
+            // Set alpha based on ownership
+            if (canvasGroup != null)
             {
-                characterIcon.sprite = character.Icon;
-                characterIcon.gameObject.SetActive(true);
+                canvasGroup.alpha = isInteractable ? 1f : 0.5f;
+                canvasGroup.interactable = isInteractable;
             }
-
-            if (stakeButton != null)
-            {
-                stakeButton.gameObject.SetActive(false);
-            }
-
-            if (unstakeButton != null)
-            {
-                unstakeButton.gameObject.SetActive(true);
-            }
-        }
-
-        public void UnstakeCharacter()
-        {
-            stakedCharacter = null;
             
-            if (characterIcon != null)
-            {
-                characterIcon.sprite = null;
-                characterIcon.gameObject.SetActive(false);
-            }
-
-            if (stakeButton != null)
-            {
-                stakeButton.gameObject.SetActive(true);
-            }
-
-            if (unstakeButton != null)
-            {
-                unstakeButton.gameObject.SetActive(false);
-            }
+            // Update button interactability
+            if (stakeButton != null) stakeButton.interactable = isInteractable;
+            if (unstakeButton != null) unstakeButton.interactable = isInteractable;
+            
+            Debug.Log($"Character slot updated - Name: {characterName}, Rarity: {rarity}, Interactable: {isInteractable}");
+        }
+        
+        private void OnStakeClicked()
+        {
+            Debug.Log("Character stake button clicked");
+        }
+        
+        private void OnUnstakeClicked()
+        {
+            Debug.Log("Character unstake button clicked");
+        }
+        
+        private void OnDestroy()
+        {
+            if (stakeButton != null) stakeButton.onClick.RemoveAllListeners();
+            if (unstakeButton != null) unstakeButton.onClick.RemoveAllListeners();
         }
     }
 } 

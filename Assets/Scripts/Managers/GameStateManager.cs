@@ -69,136 +69,95 @@ namespace SMZero
 
         private void InitializeState()
         {
-            DebugOverlay.Instance.Log("=== Initializing Game State ===");
+            Debug.Log("=== Initializing Game State ===");
             
-            bool isNewState = false;
-            
-            // Try to load state from memory first
-            if (persistentState != null)
+            // Try to load saved state first
+            bool loadedState = false;
+            try
             {
-                DebugOverlay.Instance.Log("Using persistent state from memory");
-                currentState = persistentState;
-                LogGameState("Loaded persistent state", currentState);
-            }
-            else
-            {
-                DebugOverlay.Instance.Log("No persistent state in memory, attempting to load from cloud...");
-                string savedState = null;
-                bool cloudLoadFailed = false;
-
-                // Try cloud storage first
+                // Try loading from cloud first
+                string stateData = null;
                 try
                 {
-                    savedState = LoadFromCloud(CLOUD_SAVE_KEY);
+                    stateData = LoadFromCloud(CLOUD_SAVE_KEY);
                 }
                 catch (System.Exception e)
                 {
-                    DebugOverlay.Instance.Log($"Failed to load state from cloud: {e.Message}\nTrying local storage...");
-                    cloudLoadFailed = true;
+                    Debug.LogWarning($"Failed to load from cloud: {e.Message}");
                 }
 
-                // If cloud failed or returned empty, try local storage
-                if (cloudLoadFailed || string.IsNullOrEmpty(savedState))
+                // If cloud load failed, try local storage
+                if (string.IsNullOrEmpty(stateData))
                 {
-                    savedState = LoadFromLocal();
-                    if (!string.IsNullOrEmpty(savedState))
-                    {
-                        DebugOverlay.Instance.Log("Found state in local storage");
-                    }
+                    stateData = LoadFromLocal();
                 }
 
-                if (!string.IsNullOrEmpty(savedState))
+                // If we have state data, deserialize it
+                if (!string.IsNullOrEmpty(stateData))
                 {
-                    DebugOverlay.Instance.Log($"Raw state loaded: {savedState}");
                     var serializer = new XmlSerializer(typeof(GameState));
-                    using (var reader = new StringReader(savedState))
+                    using (var reader = new StringReader(stateData))
                     {
-                        try
-                        {
-                            currentState = (GameState)serializer.Deserialize(reader);
-                            if (currentState != null)
-                            {
-                                LogGameState("Successfully loaded state", currentState);
-                            }
-                            else
-                            {
-                                DebugOverlay.Instance.Log("Deserialized state is null, will create new state");
-                                isNewState = true;
-                            }
-                        }
-                        catch (System.InvalidOperationException e)
-                        {
-                            DebugOverlay.Instance.Log($"Failed to deserialize state: {e.Message}\nWill create new state");
-                            currentState = null;
-                            isNewState = true;
-                        }
+                        currentState = (GameState)serializer.Deserialize(reader);
+                        loadedState = true;
+                        Debug.Log("Successfully loaded saved game state");
                     }
-                }
-                else
-                {
-                    DebugOverlay.Instance.Log("No saved state found, will create new state");
-                    isNewState = true;
-                }
-
-                if (currentState == null)
-                {
-                    DebugOverlay.Instance.Log("Creating new game state with default values");
-                    currentState = new GameState();
-                    LogGameState("Created new game state", currentState);
                 }
             }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Failed to load saved state: {e.Message}");
+            }
 
-            // Initialize marketplace state
+            // If no saved state was loaded, initialize with defaults
+            if (!loadedState)
+            {
+                Debug.Log("No saved state found, initializing with defaults");
+                currentState = new GameState
+                {
+                    PlayerBalance = 1000f, // Default starting balance
+                    PlayerInventory = new PlayerInventory
+                    {
+                        OwnedCharacterIds = new List<string>(),
+                        OwnedZoneIds = new List<string>()
+                    },
+                    ZonesState = new ZonesState
+                    {
+                        ZonesList = new List<ZoneStateEntry>()
+                    }
+                };
+            }
+
+            // Initialize player progress with current state's balance
+            var playerProgress = PlayerProgress.Instance;
+            if (playerProgress != null)
+            {
+                Debug.Log($"Setting player balance to {currentState.PlayerBalance}");
+                playerProgress.SetFortuneDollars(currentState.PlayerBalance);
+            }
+            else
+            {
+                Debug.LogError("Failed to get PlayerProgress instance!");
+            }
+
+            // Initialize marketplace with current state's inventory
             if (MarketplaceManager.Instance != null)
             {
-                DebugOverlay.Instance.Log("Initializing marketplace state...");
-                var marketplaceState = new MarketplaceState();
-                var inventory = new PlayerInventory();
-                
-                if (currentState.PlayerInventory != null)
+                var marketplaceState = new MarketplaceState
                 {
-                    var currentInventory = currentState.PlayerInventory;
-                    inventory.OwnedCharacterIds = new List<string>(currentInventory.OwnedCharacterIds ?? new List<string>());
-                    inventory.OwnedZoneIds = new List<string>(currentInventory.OwnedZoneIds ?? new List<string>());
-                    DebugOverlay.Instance.Log($"Restored inventory - Characters: {inventory.OwnedCharacterIds.Count}, Zones: {inventory.OwnedZoneIds.Count}");
-                }
-                else
-                {
-                    DebugOverlay.Instance.Log("No existing inventory found, initializing empty inventory");
-                }
-                
-                marketplaceState.PlayerInventory = inventory;
+                    PlayerInventory = currentState.PlayerInventory,
+                    PlayerBalance = currentState.PlayerBalance
+                };
                 MarketplaceManager.Instance.RestoreState(marketplaceState);
             }
-            else
-            {
-                DebugOverlay.Instance.Log("Warning: MarketplaceManager instance not found");
-            }
 
-            // Update player balance only if this is a new state
-            if (PlayerProgress.Instance != null)
-            {
-                if (isNewState)
-                {
-                    DebugOverlay.Instance.Log($"New state: Setting initial balance to {currentState.PlayerBalance}");
-                    PlayerProgress.Instance.SetFortuneDollars(currentState.PlayerBalance);
-                }
-                else
-                {
-                    DebugOverlay.Instance.Log($"Existing state: Loading balance of {currentState.PlayerBalance}");
-                    PlayerProgress.Instance.SetFortuneDollars(currentState.PlayerBalance);
-                }
-            }
-            else
-            {
-                DebugOverlay.Instance.Log("Warning: PlayerProgress instance not found");
-            }
-
-            ExportGameState();
-            DebugOverlay.Instance.Log("=== State Initialization Complete ===");
+            Debug.Log($"Game state initialized:");
+            Debug.Log($"- Balance: {currentState.PlayerBalance}");
+            Debug.Log($"- Owned Characters: {currentState.PlayerInventory?.OwnedCharacterIds?.Count ?? 0}");
+            Debug.Log($"- Owned Zones: {currentState.PlayerInventory?.OwnedZoneIds?.Count ?? 0}");
             
-            // Show debug overlay
-            DebugOverlay.Instance.Show();
+            ExportGameState();
+            Debug.Log("=== Game State Initialization Complete ===");
         }
 
         public void ExportGameState()
