@@ -3,6 +3,7 @@ using UnityEngine.SceneManagement;
 using Exoa.Touch;
 using Exoa.Common;
 using SMZero;
+using System.Collections;
 
 namespace SMZero
 {
@@ -119,11 +120,28 @@ namespace SMZero
             Debug.Log($"Entering location: {locationData.displayName}");
             
             // Save current state before scene transition
-            if (gameStateManager != null && marketplaceManager != null)
+            if (gameStateManager != null)
             {
-                SaveCurrentState();
+                Debug.Log("Saving game state before scene transition...");
+                gameStateManager.ExportGameState();
+                
+                // Small delay to ensure state is saved before loading new scene
+                StartCoroutine(LoadSceneWithDelay());
             }
+            else
+            {
+                LoadTargetScene();
+            }
+        }
 
+        private IEnumerator LoadSceneWithDelay()
+        {
+            yield return new WaitForSeconds(0.1f);
+            LoadTargetScene();
+        }
+
+        private void LoadTargetScene()
+        {
             if (locationData.ValidateScenePath())
             {
                 SceneManager.LoadScene(locationData.sceneToLoad);
@@ -132,15 +150,6 @@ namespace SMZero
             {
                 Debug.LogError($"Cannot enter location: {locationData.displayName} - Invalid scene path");
                 Hide();
-            }
-        }
-
-        private void SaveCurrentState()
-        {
-            // Save current state before scene transition
-            if (gameStateManager != null)
-            {
-                gameStateManager.ExportGameState();
             }
         }
 
@@ -157,6 +166,11 @@ namespace SMZero
             {
                 popupUI.Hide();
             }
+        }
+
+        public LocationData GetLocationData()
+        {
+            return locationData;
         }
     }
 } 

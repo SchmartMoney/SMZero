@@ -90,13 +90,13 @@ namespace SMZero
 
         private void OnListingsUpdated(List<NFTDisplayData> listings)
         {
-            RefreshListings(listings);
+            RefreshListings();
         }
 
         private void RefreshListings()
         {
             if (listingContainer == null || MarketplaceManager.Instance == null) return;
-            var listings = MarketplaceManager.Instance.GetAvailableListings();
+            var listings = MarketplaceManager.Instance.GetAllListings();
             RefreshListings(listings);
         }
 
@@ -112,14 +112,7 @@ namespace SMZero
                 Destroy(child.gameObject);
             }
 
-            Debug.Log($"Got {listings.Count} available listings");
-            
-            if (listingContainer == null || listingPrefab == null)
-            {
-                Debug.LogError("Cannot update listings: container or prefab is missing");
-                return;
-            }
-
+            // Create new listing items
             foreach (var listing in listings)
             {
                 try

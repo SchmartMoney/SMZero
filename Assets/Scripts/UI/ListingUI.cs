@@ -12,6 +12,7 @@ namespace SMZero
         [SerializeField] private TextMeshProUGUI rarityText;
         [SerializeField] private TextMeshProUGUI priceText;
         [SerializeField] private Button buyButton;
+        [SerializeField] private TextMeshProUGUI buyButtonText;
 
         private NFTDisplayData listing;
         private Action<NFTDisplayData> onPurchaseClicked;
@@ -23,6 +24,7 @@ namespace SMZero
             rarityText = rarity;
             priceText = price;
             buyButton = buy;
+            buyButtonText = buyButton?.GetComponentInChildren<TextMeshProUGUI>();
 
             if (itemImage != null)
             {
@@ -111,6 +113,37 @@ namespace SMZero
                 if (nameText != null) nameText.text = name;
                 if (rarityText != null) rarityText.text = $"({rarity})";
                 if (priceText != null) priceText.text = $"{listing.Price} FD";
+
+                // Check if we own this item
+                bool isOwned = false;
+                if (MarketplaceManager.Instance != null)
+                {
+                    var state = MarketplaceManager.Instance.GetCurrentState();
+                    if (state?.PlayerInventory != null)
+                    {
+                        if (listing.Type == NFTType.Character)
+                        {
+                            var characterData = (CharacterNFT)listing.NftData;
+                            isOwned = state.PlayerInventory.OwnedCharacterIds.Contains(characterData.Id);
+                        }
+                        else if (listing.Type == NFTType.Zone)
+                        {
+                            var zoneData = (ZoneNFT)listing.NftData;
+                            isOwned = state.PlayerInventory.OwnedZoneIds.Contains(zoneData.Id);
+                        }
+                    }
+                }
+
+                // Update buy button state based on ownership
+                if (buyButton != null)
+                {
+                    buyButton.interactable = !isOwned;
+                    if (buyButtonText != null)
+                    {
+                        buyButtonText.text = isOwned ? "Owned" : "Buy Now";
+                        buyButtonText.color = isOwned ? Color.gray : Color.white;
+                    }
+                }
 
                 Debug.Log($"[{gameObject.name}] Initialized listing: {name}, {rarity}, {listing.Price} FD");
             }

@@ -27,6 +27,7 @@ namespace SMZero
         private BuildingPopup buildingPopup;
         private Building activeBuilding;
         private ZoneNFT activeZoneNFT;
+        private GameStateManager gameStateManager;
 
         private void Awake()
         {
@@ -41,6 +42,34 @@ namespace SMZero
 
             zoneUI = FindObjectOfType<ZoneUI>();
             buildingPopup = FindObjectOfType<BuildingPopup>();
+            gameStateManager = GameStateManager.Instance;
+        }
+
+        private void Start()
+        {
+            if (gameStateManager != null)
+            {
+                var gameState = gameStateManager.GetCurrentState();
+                if (gameState != null)
+                {
+                    Debug.Log("=== Game State Loaded ===");
+                    Debug.Log($"Player Balance: {gameState.PlayerBalance}");
+                    if (gameState.PlayerInventory != null)
+                    {
+                        Debug.Log($"Player Inventory - Character IDs: {gameState.PlayerInventory?.OwnedCharacterIds?.Count ?? 0}");
+                        Debug.Log($"Player Inventory - Zone IDs: {gameState.PlayerInventory?.OwnedZoneIds?.Count ?? 0}");
+                    }
+                    Debug.Log("=====================");
+                }
+                else
+                {
+                    Debug.LogWarning("No game state found!");
+                }
+            }
+            else
+            {
+                Debug.LogError("GameStateManager not found!");
+            }
         }
 
         public void StakeZoneNFT(ZoneNFT zoneNFT)

@@ -74908,7 +74908,7 @@ MonoBehaviour:
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
-  m_DynamicPixelsPerUnit: 1
+  m_DynamicPixelsPerUnit: 10
   m_PresetInfoIsWorld: 1
 --- !u!223 &1386092974
 Canvas:
@@ -110756,7 +110756,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.09, y: 48.67, z: 1.0000002}
+  m_Size: {x: 1.09, y: 57.95, z: 1.0000002}
   m_Center: {x: 0.000000059604645, y: -0.00000023841858, z: -0.0000005662441}
 --- !u!114 &1929899165
 MonoBehaviour:
