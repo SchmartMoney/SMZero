@@ -32,6 +32,16 @@ namespace SMZero
             }
         }
 
+
+        private void Update()
+        {
+            // Continuously check and update balance
+            if (PlayerProgress.Instance != null)
+            {
+                UpdateBalance(PlayerProgress.Instance.GetFortuneDollars());
+            }
+        }
+
         private void Start()
         {
             InitializeUI();
@@ -56,15 +66,6 @@ namespace SMZero
             if (PlayerProgress.Instance != null)
             {
                 PlayerProgress.Instance.OnBalanceChanged -= UpdateBalance;
-            }
-        }
-
-        private void Update()
-        {
-            // Continuously check and update balance
-            if (PlayerProgress.Instance != null)
-            {
-                UpdateBalance(PlayerProgress.Instance.GetFortuneDollars());
             }
         }
 
@@ -125,18 +126,17 @@ namespace SMZero
 
         private void OnSpeedUpClicked()
         {
-            Debug.Log("Speed Up button clicked");
             var zoneManager = ZoneManager.Instance;
             if (zoneManager == null)
             {
-                Debug.LogWarning("ZoneManager not found!");
+                Debug.LogError("ZoneManager not found!");
                 return;
             }
 
             var activeBuilding = zoneManager.GetActiveBuilding();
             if (activeBuilding == null)
             {
-                Debug.LogWarning("No active building selected!");
+                Debug.LogError("No active building selected!");
                 return;
             }
 
@@ -144,34 +144,26 @@ namespace SMZero
             if (buildingPopup != null)
             {
                 buildingPopup.SpeedUp();
-                Debug.Log("Production time reduced to 5 seconds remaining");
             }
             else
             {
-                Debug.LogWarning("BuildingPopup not found!");
+                Debug.LogError("BuildingPopup not found!");
             }
         }
 
         private void OnResetClicked()
         {
-            Debug.Log("Reset State button clicked");
             if (GameStateManager.Instance != null)
             {
-                // Delete local storage
                 PlayerPrefs.DeleteKey(GameStateManager.LOCAL_SAVE_KEY);
                 PlayerPrefs.Save();
                 
-                // Reset player progress
                 if (PlayerProgress.Instance != null)
                 {
                     PlayerProgress.Instance.SetFortuneDollars(1000f);
                 }
                 
-                // Create new game state
                 GameStateManager.Instance.ResetState();
-                
-                Debug.Log("State has been reset to defaults");
-                Debug.Log("Please restart the game to apply changes");
             }
             else
             {

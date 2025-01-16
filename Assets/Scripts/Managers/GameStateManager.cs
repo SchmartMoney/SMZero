@@ -57,12 +57,10 @@ namespace SMZero
                 PlayerPrefs.SetString(key, data);
                 PlayerPrefs.Save();
                 #endif
-                DebugOverlay.Instance?.Log("Game state saved successfully");
             }
             catch (System.Exception e)
             {
-                Debug.LogWarning($"Failed to save state: {e.Message}");
-                DebugOverlay.Instance?.Log($"Failed to save state: {e.Message}");
+                Debug.LogError($"Failed to save state: {e.Message}");
             }
         }
 
@@ -91,32 +89,26 @@ namespace SMZero
             {
                 string stateData = LoadState(LOCAL_SAVE_KEY);
                 
-                // If we have state data, deserialize it
                 if (!string.IsNullOrEmpty(stateData))
                 {
                     try
                     {
                         currentState = JsonConvert.DeserializeObject<GameState>(stateData);
                         loadedState = true;
-                        Debug.Log("Successfully loaded saved game state");
                     }
                     catch (System.Exception e)
                     {
-                        Debug.LogWarning($"Failed to deserialize state data: {e.Message}");
-                        DebugOverlay.Instance?.Log($"Failed to deserialize state data: {e.Message}");
+                        Debug.LogError($"Failed to deserialize state data: {e.Message}");
                     }
                 }
             }
             catch (System.Exception e)
             {
-                Debug.LogWarning($"Failed to load saved state: {e.Message}");
-                DebugOverlay.Instance?.Log($"Failed to load saved state: {e.Message}");
+                Debug.LogError($"Failed to load saved state: {e.Message}");
             }
 
-            // If no saved state was loaded, initialize with defaults
             if (!loadedState)
             {
-                Debug.Log("No saved state found, initializing with defaults");
                 currentState = new GameState
                 {
                     PlayerBalance = 1000f,
@@ -132,36 +124,15 @@ namespace SMZero
                 };
             }
 
-            // Initialize player progress with current state's balance
             var playerProgress = PlayerProgress.Instance;
             if (playerProgress != null)
             {
-                Debug.Log($"Setting player balance to {currentState.PlayerBalance}");
                 playerProgress.SetFortuneDollars(currentState.PlayerBalance);
             }
             else
             {
-                Debug.LogWarning("Failed to get PlayerProgress instance!");
+                Debug.LogError("Failed to get PlayerProgress instance!");
             }
-
-            // Initialize marketplace with current state's inventory
-            if (MarketplaceManager.Instance != null)
-            {
-                var marketplaceState = new MarketplaceState
-                {
-                    PlayerInventory = currentState.PlayerInventory,
-                    PlayerBalance = currentState.PlayerBalance
-                };
-                MarketplaceManager.Instance.RestoreState(marketplaceState);
-            }
-
-            Debug.Log($"Game state initialized:");
-            Debug.Log($"- Balance: {currentState.PlayerBalance}");
-            Debug.Log($"- Owned Characters: {currentState.PlayerInventory?.OwnedCharacterIds?.Count ?? 0}");
-            Debug.Log($"- Owned Zones: {currentState.PlayerInventory?.OwnedZoneIds?.Count ?? 0}");
-            
-            ExportGameState();
-            Debug.Log("=== Game State Initialization Complete ===");
         }
 
         public void ExportGameState()

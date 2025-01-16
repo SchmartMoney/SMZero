@@ -10,11 +10,9 @@ public class LocationPopupUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI titleText;
     [SerializeField] private TextMeshProUGUI descriptionText;
     [SerializeField] private Button enterButton;
-    [SerializeField] private Button leaveButton;
     [SerializeField] private Button closeButton;
 
     private UnityAction onEnterAction;
-    private UnityAction onLeaveAction;
 
     private void Awake()
     {
@@ -29,7 +27,6 @@ public class LocationPopupUI : MonoBehaviour
         if (titleText == null) Debug.LogError("TitleText not assigned!");
         if (descriptionText == null) Debug.LogError("DescriptionText not assigned!");
         if (enterButton == null) Debug.LogError("EnterButton not assigned!");
-        if (leaveButton == null) Debug.LogError("LeaveButton not assigned!");
         if (closeButton == null) Debug.LogError("CloseButton not assigned!");
     }
 
@@ -41,13 +38,6 @@ public class LocationPopupUI : MonoBehaviour
             closeButton.onClick.AddListener(Hide);
         }
 
-        if (leaveButton != null)
-        {
-            leaveButton.onClick.RemoveAllListeners();
-            leaveButton.onClick.AddListener(() => {
-                onLeaveAction?.Invoke();
-            });
-        }
 
         if (enterButton != null)
         {
@@ -58,7 +48,7 @@ public class LocationPopupUI : MonoBehaviour
         }
     }
 
-    public void Show(LocationData locationData, LocationUIData uiData, UnityAction onEnter, UnityAction onLeave)
+    public void Show(LocationData locationData, LocationUIData uiData, UnityAction onEnter)
     {
         if (locationData == null || uiData == null)
         {
@@ -68,7 +58,6 @@ public class LocationPopupUI : MonoBehaviour
 
         // Store callbacks
         onEnterAction = onEnter;
-        onLeaveAction = onLeave;
 
         // Update UI
         if (titleText != null)
@@ -87,11 +76,6 @@ public class LocationPopupUI : MonoBehaviour
             enterButton.gameObject.SetActive(uiData.showEnterButton);
         }
 
-        if (leaveButton != null)
-        {
-            leaveButton.gameObject.SetActive(uiData.showLeaveButton);
-        }
-
         // Show the popup
         if (popupPanel != null)
         {
@@ -108,6 +92,5 @@ public class LocationPopupUI : MonoBehaviour
 
         // Clear callbacks
         onEnterAction = null;
-        onLeaveAction = null;
     }
 } 

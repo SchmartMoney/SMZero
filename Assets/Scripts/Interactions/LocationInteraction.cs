@@ -111,7 +111,7 @@ namespace SMZero
             // Otherwise show the regular location popup
             if (popupUI != null)
             {
-                popupUI.Show(locationData, uiData, OnEnterLocation, OnLeaveLocation);
+                popupUI.Show(locationData, uiData, OnEnterLocation);
             }
         }
 
@@ -152,14 +152,7 @@ namespace SMZero
                 Hide();
             }
         }
-
-        private void OnLeaveLocation()
-        {
-            // Save current state before leaving
-            GameStateManager.Instance.ExportGameState();
-            SceneManager.LoadScene("MainScene");
-        }
-
+        
         private void Hide()
         {
             if (popupUI != null)

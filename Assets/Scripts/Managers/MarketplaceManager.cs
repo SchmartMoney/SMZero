@@ -486,21 +486,14 @@ namespace SMZero
                 // Update current state
                 if (currentState == null)
                 {
-                    Debug.Log("Creating new marketplace state");
                     currentState = new MarketplaceState();
                 }
                 currentState.PlayerInventory = playerInventory;
                 currentState.PlayerBalance = PlayerProgress.Instance.GetFortuneDollars();
 
-                Debug.Log("=== Updated State ===");
-                Debug.Log($"- Balance: {currentState.PlayerBalance}");
-                Debug.Log($"- Owned Characters: {string.Join(", ", currentState.PlayerInventory.OwnedCharacterIds)}");
-                Debug.Log($"- Owned Zones: {string.Join(", ", currentState.PlayerInventory.OwnedZoneIds)}");
-
                 // Log the updated state after purchase
                 if (GameStateManager.Instance != null)
                 {
-                    Debug.Log("Exporting game state after purchase");
                     GameStateManager.Instance.ExportGameState();
                 }
 
