@@ -1,60 +1,104 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.Collections;
 using UnityEngine.SceneManagement;
 
 namespace SMZero
 {
-    public class GameHUD : MonoBehaviour
+    public class HUDManager : MonoBehaviour
     {
-        private static GameHUD instance;
-        public static GameHUD Instance
-        {
-            get
-            {
-                if (instance == null)
-                {
-                    instance = GameManagers.Instance.HUD;
-                }
-                return instance;
-            }
-        }
-
-        [Header("UI References")]
+        [Header("Player Info")]
         [SerializeField] private Image playerPortrait;
         [SerializeField] private TextMeshProUGUI playerIdText;
         [SerializeField] private Slider progressBar;
+
+        [Header("Location")]
         [SerializeField] private TextMeshProUGUI locationText;
+
+        [Header("Balance")]
         [SerializeField] private Image fdIcon;
         [SerializeField] private TextMeshProUGUI balanceText;
+
+        [Header("Buttons")]
         [SerializeField] private Button speedUpButton;
-        [SerializeField] private Button resetButton;
+        [SerializeField] private Button resetStateButton;
 
         private void Awake()
         {
-            if (instance != null && instance != this)
+            // Subscribe to balance updates as early as possible
+            if (PlayerProgress.Instance != null)
             {
-                Destroy(gameObject);
-                return;
+                PlayerProgress.Instance.OnBalanceChanged += UpdateBalance;
             }
+        }
 
-            instance = this;
-            Debug.Log("GameHUD Awake - Starting initialization");
-
-            // Wait a frame to ensure PlayerProgress is initialized
-            StartCoroutine(InitializeBalance());
+        private void Start()
+        {
+            InitializeUI();
         }
 
         private void OnEnable()
         {
             SceneManager.sceneLoaded += OnSceneLoaded;
-            UpdateLocationForCurrentScene();
+            
+            // Re-subscribe to balance updates when enabled
+            if (PlayerProgress.Instance != null)
+            {
+                PlayerProgress.Instance.OnBalanceChanged += UpdateBalance;
+                // Force an immediate balance update
+                UpdateBalance(PlayerProgress.Instance.GetFortuneDollars());
+            }
         }
 
         private void OnDisable()
         {
             SceneManager.sceneLoaded -= OnSceneLoaded;
+            if (PlayerProgress.Instance != null)
+            {
+                PlayerProgress.Instance.OnBalanceChanged -= UpdateBalance;
+            }
+        }
+
+        private void Update()
+        {
+            // Continuously check and update balance
+            if (PlayerProgress.Instance != null)
+            {
+                UpdateBalance(PlayerProgress.Instance.GetFortuneDollars());
+            }
+        }
+
+        private void InitializeUI()
+        {
+            // Set initial player info
+            if (playerIdText != null)
+            {
+                playerIdText.text = "Player #1234";
+            }
+
+            // Setup button listeners
+            if (speedUpButton != null)
+            {
+                speedUpButton.onClick.RemoveAllListeners();
+                speedUpButton.onClick.AddListener(OnSpeedUpClicked);
+            }
+            else
+            {
+                Debug.LogError("Speed Up button reference missing in HUDManager!");
+            }
+
+            if (resetStateButton != null)
+            {
+                resetStateButton.onClick.RemoveAllListeners();
+                resetStateButton.onClick.AddListener(OnResetClicked);
+            }
+            else
+            {
+                Debug.LogError("Reset State button reference missing in HUDManager!");
+            }
+
+            // Set initial location
+            UpdateLocationForCurrentScene();
         }
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -79,40 +123,9 @@ namespace SMZero
             }
         }
 
-        private System.Collections.IEnumerator InitializeBalance()
-        {
-            yield return null; // Wait one frame
-
-            // Subscribe to balance updates
-            if (PlayerProgress.Instance != null)
-            {
-                Debug.Log($"Initializing balance from PlayerProgress: {PlayerProgress.Instance.GetFortuneDollars()}");
-                PlayerProgress.Instance.OnBalanceChanged += UpdateBalance;
-                UpdateBalance(PlayerProgress.Instance.GetFortuneDollars());
-            }
-            else
-            {
-                Debug.LogWarning("PlayerProgress.Instance is null during balance initialization!");
-            }
-
-            // Setup button listeners
-            if (speedUpButton != null)
-            {
-                speedUpButton.onClick.AddListener(OnSpeedUpClicked);
-            }
-
-            if (resetButton != null)
-            {
-                resetButton.onClick.AddListener(OnResetClicked);
-            }
-
-            // Set initial location
-            UpdateLocationForCurrentScene();
-        }
-
         private void OnSpeedUpClicked()
         {
-            // Speed up production
+            Debug.Log("Speed Up button clicked");
             var zoneManager = ZoneManager.Instance;
             if (zoneManager == null)
             {
@@ -141,6 +154,7 @@ namespace SMZero
 
         private void OnResetClicked()
         {
+            Debug.Log("Reset State button clicked");
             if (GameStateManager.Instance != null)
             {
                 // Delete local storage
@@ -159,47 +173,53 @@ namespace SMZero
                 Debug.Log("State has been reset to defaults");
                 Debug.Log("Please restart the game to apply changes");
             }
+            else
+            {
+                Debug.LogError("GameStateManager not found!");
+            }
         }
 
-        public void UpdateBalance(float newBalance)
+        private void UpdateBalance(float newBalance)
         {
             if (balanceText != null)
             {
-                Debug.Log($"Updating HUD balance to: {newBalance}");
                 balanceText.text = $"{newBalance:N2} FD";
             }
             else
             {
-                Debug.LogWarning("balanceText is null during UpdateBalance!");
+                Debug.LogError("Balance text reference missing in HUDManager!");
             }
         }
 
-        public void SetLocation(string locationName)
+        private void SetLocation(string locationName)
         {
             if (locationText != null)
             {
                 locationText.text = locationName;
             }
+            else
+            {
+                Debug.LogError("Location text reference missing in HUDManager!");
+            }
         }
 
         private void OnDestroy()
         {
-            if (PlayerProgress.Instance != null)
-            {
-                PlayerProgress.Instance.OnBalanceChanged -= UpdateBalance;
-            }
-
             if (speedUpButton != null)
             {
                 speedUpButton.onClick.RemoveListener(OnSpeedUpClicked);
             }
 
-            if (resetButton != null)
+            if (resetStateButton != null)
             {
-                resetButton.onClick.RemoveListener(OnResetClicked);
+                resetStateButton.onClick.RemoveListener(OnResetClicked);
             }
 
             SceneManager.sceneLoaded -= OnSceneLoaded;
+            if (PlayerProgress.Instance != null)
+            {
+                PlayerProgress.Instance.OnBalanceChanged -= UpdateBalance;
+            }
         }
     }
 } 

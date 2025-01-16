@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System;
+using UltimateClean;
 
 namespace SMZero
 {
@@ -11,13 +12,13 @@ namespace SMZero
         [SerializeField] private TextMeshProUGUI nameText;
         [SerializeField] private TextMeshProUGUI rarityText;
         [SerializeField] private TextMeshProUGUI priceText;
-        [SerializeField] private Button buyButton;
+        [SerializeField] private CleanButton buyButton;
         [SerializeField] private TextMeshProUGUI buyButtonText;
 
         private NFTDisplayData listing;
         private Action<NFTDisplayData> onPurchaseClicked;
 
-        public void SetupReferences(Image image, TextMeshProUGUI name, TextMeshProUGUI rarity, TextMeshProUGUI price, Button buy)
+        public void SetupReferences(Image image, TextMeshProUGUI name, TextMeshProUGUI rarity, TextMeshProUGUI price, CleanButton buy)
         {
             itemImage = image;
             nameText = name;
@@ -25,36 +26,11 @@ namespace SMZero
             priceText = price;
             buyButton = buy;
             buyButtonText = buyButton?.GetComponentInChildren<TextMeshProUGUI>();
-
-            if (itemImage != null)
-            {
-                ConfigureImageComponent();
-            }
-        }
-
-        private void ConfigureImageComponent()
-        {
-            itemImage.preserveAspect = true;
-            itemImage.raycastTarget = false;
-            
-            var rt = itemImage.GetComponent<RectTransform>();
-            if (rt != null)
-            {
-                rt.anchorMin = new Vector2(0, 0);
-                rt.anchorMax = new Vector2(1, 1);
-                rt.offsetMin = Vector2.zero;
-                rt.offsetMax = Vector2.zero;
-                rt.SetAsFirstSibling();
-            }
         }
 
         private void OnValidate()
         {
             ValidateReferences();
-            if (itemImage != null)
-            {
-                ConfigureImageComponent();
-            }
         }
 
         private void ValidateReferences()

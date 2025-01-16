@@ -23,11 +23,13 @@ namespace SMZero
         [SerializeField] private GameHUD gameHUD;
         [SerializeField] private GameStateManager gameState;
         [SerializeField] private PlayerProgress playerProgress;
+        [SerializeField] private MarketplaceManager marketplace;
 
         public DebugOverlay Debug => debugOverlay;
         public GameHUD HUD => gameHUD;
         public GameStateManager GameState => gameState;
         public PlayerProgress Progress => playerProgress;
+        public MarketplaceManager Marketplace => marketplace;
 
         private void Awake()
         {
@@ -40,6 +42,11 @@ namespace SMZero
             instance = this;
             DontDestroyOnLoad(gameObject);
 
+            InitializeManagers();
+        }
+
+        private void InitializeManagers()
+        {
             // Create managers if not set
             if (debugOverlay == null)
             {
@@ -50,9 +57,20 @@ namespace SMZero
 
             if (gameHUD == null)
             {
-                GameObject hudObj = new GameObject("GameHUD");
-                hudObj.transform.SetParent(transform);
-                gameHUD = hudObj.AddComponent<GameHUD>();
+                // Load GameHUD prefab
+                GameObject hudPrefab = Resources.Load<GameObject>("Prefabs/UI/GameHUD");
+                if (hudPrefab != null)
+                {
+                    GameObject hudObj = Instantiate(hudPrefab);
+                    hudObj.name = "GameHUD";
+                    hudObj.transform.SetParent(transform, false);
+                    gameHUD = hudObj.GetComponent<GameHUD>();
+                    DontDestroyOnLoad(hudObj);
+                }
+                else
+                {
+                    UnityEngine.Debug.LogError("Failed to load GameHUD prefab from Resources/Prefabs/UI/GameHUD");
+                }
             }
 
             if (gameState == null)
@@ -67,6 +85,13 @@ namespace SMZero
                 GameObject progressObj = new GameObject("PlayerProgress");
                 progressObj.transform.SetParent(transform);
                 playerProgress = progressObj.AddComponent<PlayerProgress>();
+            }
+
+            if (marketplace == null)
+            {
+                GameObject marketplaceObj = new GameObject("Marketplace");
+                marketplaceObj.transform.SetParent(transform);
+                marketplace = marketplaceObj.AddComponent<MarketplaceManager>();
             }
         }
     }

@@ -15,9 +15,7 @@ namespace SMZero
             {
                 if (instance == null)
                 {
-                    var go = new GameObject("MarketplaceManager");
-                    instance = go.AddComponent<MarketplaceManager>();
-                    DontDestroyOnLoad(go);
+                    instance = GameManagers.Instance.Marketplace;
                 }
                 return instance;
             }
@@ -51,15 +49,11 @@ namespace SMZero
                 Destroy(gameObject);
                 return;
             }
-            
+
             instance = this;
-            
-            if (!hasInitialized)
-            {
-                LoadSprites();
-                InitializeMarketplace();
-                hasInitialized = true;
-            }
+            LoadSprites();
+            ValidateSprites();
+            InitializeMarketplace();
         }
 
         private void LoadSprites()
@@ -112,12 +106,12 @@ namespace SMZero
                 Debug.Log("First time initialization - Creating NFTs...");
                 
                 // Add Character NFTs
-                AddCharacterNFT("Richard", richardSprite, NFTRarity.Rare, 400f, 1.0f, 1.0f);
-                AddCharacterNFT("Emily", emilySprite, NFTRarity.Epic, 6000f, 0.85f, 1.0f);
-                AddCharacterNFT("Jake", jakeSprite, NFTRarity.Legendary, 12000f, 0.85f, 2.0f);
+                AddCharacterNFT("Richard", richardSprite, NFTRarity.Common, 400f, 1.0f, 1.0f);
+                AddCharacterNFT("Emily", emilySprite, NFTRarity.Rare, 6000f, 0.85f, 1.0f);
+                AddCharacterNFT("Jake", jakeSprite, NFTRarity.Epic, 12000f, 0.85f, 2.0f);
                 
                 // Add Zone NFTs
-                AddZoneNFT("Vault Avenue", vaultAvenueSprite, NFTRarity.Rare, 500f);
+                AddZoneNFT("Vault Avenue", vaultAvenueSprite, NFTRarity.Common, 500f);
             }
             else
             {
@@ -396,12 +390,12 @@ namespace SMZero
             zoneNFTs.Clear();
             
             // Add Character NFTs
-            AddCharacterNFT("Richard", richardSprite, NFTRarity.Rare, 400f, 1.0f, 1.0f);
-            AddCharacterNFT("Emily", emilySprite, NFTRarity.Epic, 6000f, 0.85f, 1.0f);
-            AddCharacterNFT("Jake", jakeSprite, NFTRarity.Legendary, 12000f, 0.85f, 2.0f);
+            AddCharacterNFT("Richard", richardSprite, NFTRarity.Common, 400f, 1.0f, 1.0f);
+            AddCharacterNFT("Emily", emilySprite, NFTRarity.Rare, 6000f, 0.85f, 1.0f);
+            AddCharacterNFT("Jake", jakeSprite, NFTRarity.Epic, 12000f, 0.85f, 2.0f);
             
             // Add Zone NFTs
-            AddZoneNFT("Vault Avenue", vaultAvenueSprite, NFTRarity.Rare, 500f);
+            AddZoneNFT("Vault Avenue", vaultAvenueSprite, NFTRarity.Common, 500f);
 
             // Update sold status of listings based on inventory
             foreach (var listing in listings)
