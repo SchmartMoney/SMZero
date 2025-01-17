@@ -2,14 +2,14 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
+using UltimateClean;
 
 namespace SMZero
 {
     public class ZoneUI : MonoBehaviour
     {
         [Header("References")]
-        [SerializeField] private TextMeshProUGUI zoneNameText;
-        [SerializeField] private Button returnToMapButton;
+        [SerializeField] private CleanButton returnToMapButton;
         [SerializeField] private BuildingPopup buildingPopup;
         
         [Header("Static Slots")]
@@ -25,7 +25,6 @@ namespace SMZero
         
         private void ValidateReferences()
         {
-            if (zoneNameText == null) Debug.LogError("Zone name text is missing!");
             if (returnToMapButton == null) Debug.LogError("Return to map button is missing!");
             if (buildingPopup == null) Debug.LogError("Building popup is missing!");
             if (buildingSlots == null || buildingSlots.Length == 0) Debug.LogError("Building slots array is empty!");
@@ -40,9 +39,6 @@ namespace SMZero
                 Debug.LogError("ZoneManager not found in scene!");
                 return;
             }
-            
-            // Setup zone name
-            zoneNameText.text = zoneManager.ZoneName;
             
             // Setup return button
             returnToMapButton.onClick.AddListener(OnReturnToMapClicked);

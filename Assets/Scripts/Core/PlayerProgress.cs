@@ -74,7 +74,6 @@ namespace SMZero
             string json = JsonUtility.ToJson(data);
             PlayerPrefs.SetString(SAVE_KEY, json);
             PlayerPrefs.Save();
-            Debug.Log("Progress saved successfully");
         }
 
         private void LoadProgress()
@@ -89,7 +88,6 @@ namespace SMZero
                 totalIncome = data.totalIncome;
                 dailyIncome = data.dailyIncome;
                 
-                Debug.Log("Progress loaded successfully");
             }
         }
 
@@ -104,7 +102,6 @@ namespace SMZero
             totalIncome += amount;
             dailyIncome += amount;
             OnBalanceChanged?.Invoke(fortuneDollars);
-            Debug.Log($"Added {amount} fortune dollars. New balance: {fortuneDollars}");
             SaveProgress();
         }
 
@@ -114,11 +111,9 @@ namespace SMZero
             {
                 fortuneDollars -= amount;
                 OnBalanceChanged?.Invoke(fortuneDollars);
-                Debug.Log($"Spent {amount} fortune dollars. New balance: {fortuneDollars}");
                 SaveProgress();
                 return true;
             }
-            Debug.LogWarning($"Insufficient funds. Required: {amount}, Available: {fortuneDollars}");
             return false;
         }
 
@@ -126,7 +121,6 @@ namespace SMZero
         {
             fortuneDollars = amount;
             OnBalanceChanged?.Invoke(fortuneDollars);
-            Debug.Log($"Set fortune dollars to: {fortuneDollars}");
             SaveProgress();
         }
 
@@ -140,7 +134,6 @@ namespace SMZero
         public void IncrementAssetsProduced()
         {
             totalAssetsProduced++;
-            Debug.Log($"Total assets produced: {totalAssetsProduced}");
             SaveProgress();
         }
 

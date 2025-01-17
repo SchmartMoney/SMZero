@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using System.Linq;
 using System;
+using UltimateClean;
 
 namespace SMZero
 {
@@ -15,8 +16,8 @@ namespace SMZero
         [SerializeField] private Image buildingImage;
         [SerializeField] private TextMeshProUGUI timerText;
         [SerializeField] private GameObject characterSlotsContainer;
-        [SerializeField] private Button closeButton;
-        [SerializeField] private Button collectButton;
+        [SerializeField] private CleanButton closeButton;
+        [SerializeField] private CleanButton collectButton;
         [SerializeField] private CanvasGroup canvasGroup;
         
         [Header("Character Slots")]
@@ -206,17 +207,17 @@ namespace SMZero
                     {
                         case 0:
                             characterName = "Richard";
-                            rarity = "Rare";
+                            rarity = "Common";
                             isInteractable = ownedCharacters?.Any(c => c.Id == "richard-nft-001") ?? false;
                             break;
                         case 1:
                             characterName = "Emily";
-                            rarity = "Epic";
+                            rarity = "Rare";
                             isInteractable = ownedCharacters?.Any(c => c.Id == "emily-nft-001") ?? false;
                             break;
                         case 2:
                             characterName = "Jake";
-                            rarity = "Legendary";
+                            rarity = "Epic";
                             isInteractable = ownedCharacters?.Any(c => c.Id == "jake-nft-001") ?? false;
                             break;
                     }

@@ -26,6 +26,8 @@ namespace SMZero
 
         private GameState currentState;
         private static GameState persistentState;
+        private bool isInitialized = false;
+        public bool IsInitialized => isInitialized;
 
         #if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")]
@@ -37,6 +39,7 @@ namespace SMZero
 
         private void Awake()
         {
+            UnityEngine.Debug.Log("[GameStateManager] Awake called");
             if (instance != null && instance != this)
             {
                 Destroy(gameObject);
@@ -44,23 +47,27 @@ namespace SMZero
             }
 
             instance = this;
-            Invoke(nameof(InitializeState), 0.1f);
+            InitializeState();
         }
 
         private void SaveState(string key, string data)
         {
             try
             {
+                UnityEngine.Debug.Log($"[GameStateManager] Saving state data (length: {data?.Length ?? 0})");
+                UnityEngine.Debug.Log($"[GameStateManager] Full state data being saved: {data}");
                 #if UNITY_WEBGL && !UNITY_EDITOR
                 SaveToLocal(key, data);
+                UnityEngine.Debug.Log("[GameStateManager] Saved state to WebGL localStorage");
                 #else
                 PlayerPrefs.SetString(key, data);
                 PlayerPrefs.Save();
+                UnityEngine.Debug.Log("[GameStateManager] Saved state to PlayerPrefs");
                 #endif
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"Failed to save state: {e.Message}");
+                UnityEngine.Debug.LogError($"[GameStateManager] Failed to save state: {e.Message}");
             }
         }
 
@@ -68,22 +75,65 @@ namespace SMZero
         {
             try
             {
+                string data = null;
                 #if UNITY_WEBGL && !UNITY_EDITOR
-                return LoadFromLocal(key);
+                data = LoadFromLocal(key);
+                UnityEngine.Debug.Log("[GameStateManager] Loaded state from WebGL localStorage");
                 #else
-                return PlayerPrefs.GetString(key);
+                data = PlayerPrefs.GetString(key);
+                UnityEngine.Debug.Log("[GameStateManager] Loaded state from PlayerPrefs");
                 #endif
+                UnityEngine.Debug.Log($"[GameStateManager] Loaded state data (length: {data?.Length ?? 0})");
+                UnityEngine.Debug.Log($"[GameStateManager] Full state data loaded: {data}");
+                return data;
             }
             catch (System.Exception e)
             {
-                Debug.LogWarning($"Failed to load state: {e.Message}");
-                DebugOverlay.Instance?.Log($"Failed to load state: {e.Message}");
+                UnityEngine.Debug.LogWarning($"[GameStateManager] Failed to load state: {e.Message}");
                 return null;
+            }
+        }
+
+        private void LogGameState(string prefix, GameState state)
+        {
+            if (state == null)
+            {
+                UnityEngine.Debug.Log($"{prefix} - State is null!");
+                return;
+            }
+
+            UnityEngine.Debug.Log($"{prefix}:");
+            UnityEngine.Debug.Log($"- Balance: {state.PlayerBalance}");
+            
+            if (state.PlayerInventory != null)
+            {
+                UnityEngine.Debug.Log($"- Inventory:");
+                UnityEngine.Debug.Log($"  - Owned Characters ({state.PlayerInventory.OwnedCharacterIds?.Count ?? 0}):");
+                if (state.PlayerInventory.OwnedCharacterIds != null)
+                {
+                    foreach (var id in state.PlayerInventory.OwnedCharacterIds)
+                    {
+                        UnityEngine.Debug.Log($"    - {id}");
+                    }
+                }
+                UnityEngine.Debug.Log($"  - Owned Zones ({state.PlayerInventory.OwnedZoneIds?.Count ?? 0}):");
+                if (state.PlayerInventory.OwnedZoneIds != null)
+                {
+                    foreach (var id in state.PlayerInventory.OwnedZoneIds)
+                    {
+                        UnityEngine.Debug.Log($"    - {id}");
+                    }
+                }
+            }
+            else
+            {
+                UnityEngine.Debug.Log("- Inventory is null!");
             }
         }
 
         private void InitializeState()
         {
+            UnityEngine.Debug.Log("[GameStateManager] Starting state initialization");
             bool loadedState = false;
             try
             {
@@ -95,16 +145,36 @@ namespace SMZero
                     {
                         currentState = JsonConvert.DeserializeObject<GameState>(stateData);
                         loadedState = true;
+                        LogGameState("[GameStateManager] Successfully loaded state", currentState);
+                        
+                        // Ensure lists are initialized
+                        if (currentState.PlayerInventory == null)
+                        {
+                            currentState.PlayerInventory = new PlayerInventory
+                            {
+                                OwnedCharacterIds = new List<string>(),
+                                OwnedZoneIds = new List<string>()
+                            };
+                        }
+                        else
+                        {
+                            currentState.PlayerInventory.OwnedCharacterIds ??= new List<string>();
+                            currentState.PlayerInventory.OwnedZoneIds ??= new List<string>();
+                        }
                     }
                     catch (System.Exception e)
                     {
-                        Debug.LogError($"Failed to deserialize state data: {e.Message}");
+                        UnityEngine.Debug.LogError($"[GameStateManager] Failed to deserialize state data: {e.Message}");
                     }
+                }
+                else
+                {
+                    UnityEngine.Debug.Log("[GameStateManager] No saved state found, creating new state");
                 }
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"Failed to load saved state: {e.Message}");
+                UnityEngine.Debug.LogError($"[GameStateManager] Failed to load saved state: {e.Message}");
             }
 
             if (!loadedState)
@@ -122,24 +192,32 @@ namespace SMZero
                         ZonesList = new List<ZoneStateEntry>()
                     }
                 };
+                UnityEngine.Debug.Log("[GameStateManager] Created new default state");
+                LogGameState("[GameStateManager] New state details", currentState);
+                ExportGameState(); // Save the initial state
             }
 
             var playerProgress = PlayerProgress.Instance;
             if (playerProgress != null)
             {
                 playerProgress.SetFortuneDollars(currentState.PlayerBalance);
+                UnityEngine.Debug.Log($"[GameStateManager] Set player balance to {currentState.PlayerBalance}");
             }
             else
             {
-                Debug.LogError("Failed to get PlayerProgress instance!");
+                UnityEngine.Debug.LogError("[GameStateManager] Failed to get PlayerProgress instance!");
             }
+            
+            isInitialized = true;
+            UnityEngine.Debug.Log("[GameStateManager] State initialization complete");
         }
 
         public void ExportGameState()
         {
             try
             {
-                DebugOverlay.Instance?.Log("=== Exporting Game State ===");
+                UnityEngine.Debug.Log("[GameStateManager] Starting game state export");
+                LogGameState("[GameStateManager] Current state before export", currentState);
                 
                 // Sync current state with latest data
                 if (currentState != null)
@@ -148,7 +226,7 @@ namespace SMZero
                     if (PlayerProgress.Instance != null)
                     {
                         currentState.PlayerBalance = PlayerProgress.Instance.GetFortuneDollars();
-                        DebugOverlay.Instance?.Log($"Updated balance to: {currentState.PlayerBalance}");
+                        UnityEngine.Debug.Log($"[GameStateManager] Updated balance to: {currentState.PlayerBalance}");
                     }
                     
                     // Update inventory from MarketplaceManager
@@ -158,7 +236,8 @@ namespace SMZero
                         if (marketplaceState?.PlayerInventory != null)
                         {
                             currentState.PlayerInventory = marketplaceState.PlayerInventory;
-                            DebugOverlay.Instance?.Log($"Updated inventory from MarketplaceManager");
+                            UnityEngine.Debug.Log($"[GameStateManager] Updated inventory from MarketplaceManager");
+                            LogGameState("[GameStateManager] Updated state after marketplace sync", currentState);
                         }
                     }
                 }
@@ -171,51 +250,22 @@ namespace SMZero
                 
                 SaveState(LOCAL_SAVE_KEY, stateData);
                 persistentState = currentState;
-                LogGameState("Game state exported successfully", currentState);
-                DebugOverlay.Instance?.Log("=== Export Complete ===");
+                UnityEngine.Debug.Log("[GameStateManager] Game state exported successfully");
             }
             catch (System.Exception e)
             {
-                Debug.LogWarning($"Failed to export game state: {e.Message}\n{e.StackTrace}");
-                DebugOverlay.Instance?.Log($"Failed to export game state: {e.Message}");
-            }
-        }
-
-        private void LogGameState(string prefix, GameState state)
-        {
-            if (state == null)
-            {
-                DebugOverlay.Instance.Log($"{prefix} - State is null!");
-                return;
-            }
-
-            DebugOverlay.Instance.Log($"{prefix}:");
-            DebugOverlay.Instance.Log($"- Balance: {state.PlayerBalance}");
-            
-            if (state.PlayerInventory != null)
-            {
-                DebugOverlay.Instance.Log($"- Inventory:");
-                DebugOverlay.Instance.Log($"  - Owned Characters: {state.PlayerInventory.OwnedCharacterIds?.Count ?? 0}");
-                foreach (var id in state.PlayerInventory.OwnedCharacterIds ?? new List<string>())
-                {
-                    DebugOverlay.Instance.Log($"    - Character: {id}");
-                }
-                DebugOverlay.Instance.Log($"  - Owned Zones: {state.PlayerInventory.OwnedZoneIds?.Count ?? 0}");
-                foreach (var id in state.PlayerInventory.OwnedZoneIds ?? new List<string>())
-                {
-                    DebugOverlay.Instance.Log($"    - Zone: {id}");
-                }
-            }
-            
-            if (state.ZonesState?.ZonesList != null)
-            {
-                DebugOverlay.Instance.Log("- Zones State:");
-                DebugOverlay.Instance.Log($"  - Total Zones: {state.ZonesState.ZonesList.Count}");
+                UnityEngine.Debug.LogError($"[GameStateManager] Failed to export game state: {e.Message}\n{e.StackTrace}");
             }
         }
 
         public GameState GetCurrentState()
         {
+            if (!isInitialized)
+            {
+                UnityEngine.Debug.LogWarning("[GameStateManager] Attempting to get state before initialization");
+                return null;
+            }
+
             if (currentState != null && PlayerProgress.Instance != null)
             {
                 currentState.PlayerBalance = PlayerProgress.Instance.GetFortuneDollars();
@@ -225,6 +275,7 @@ namespace SMZero
 
         public void ResetState()
         {
+            UnityEngine.Debug.Log("[GameStateManager] Resetting game state");
             currentState = new GameState();
             persistentState = null;
             
@@ -236,6 +287,13 @@ namespace SMZero
                 MarketplaceManager.Instance.RestoreState(marketplaceState);
             }
             
+            ExportGameState();
+            UnityEngine.Debug.Log("[GameStateManager] Game state reset complete");
+        }
+
+        private void OnApplicationQuit()
+        {
+            UnityEngine.Debug.Log("[GameStateManager] Application quitting, exporting final state");
             ExportGameState();
         }
     }
