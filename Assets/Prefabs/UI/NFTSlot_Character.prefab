@@ -275,7 +275,7 @@ MonoBehaviour:
   m_fontWeight: 400
   m_enableAutoSizing: 1
   m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_fontSizeMax: 150
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -521,6 +521,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_fontSize
       value: 34.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 3453147298506466678, guid: 5fe287d0e78fb4e1f87bc982c6189a5c,
+        type: 3}
+      propertyPath: m_fontSizeMax
+      value: 200
       objectReference: {fileID: 0}
     - target: {fileID: 3453147298506466678, guid: 5fe287d0e78fb4e1f87bc982c6189a5c,
         type: 3}
