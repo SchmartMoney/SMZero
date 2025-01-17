@@ -16,6 +16,7 @@ namespace SMZero
     {
         public string Id;
         public string Name;
+        public string MarketplaceName;
         public Sprite Icon;
         public NFTRarity Rarity;
 

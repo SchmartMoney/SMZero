@@ -77,7 +77,7 @@ namespace SMZero
                 {
                     var zoneData = (ZoneNFT)listing.NftData;
                     name = zoneData.Name;
-                    rarity = zoneData.Rarity.ToString();
+                    rarity = zoneData.MarketplaceName;
                     if (itemImage != null)
                     {
                         itemImage.sprite = zoneData.Icon;

@@ -101,7 +101,19 @@ namespace SMZero
             currentBuilding = building;
             
             // Update UI
-            if (nameText != null) nameText.text = building.BuildingId;
+            if (nameText != null)
+            {
+                var marketplaceManager = MarketplaceManager.Instance;
+                if (marketplaceManager != null)
+                {
+                    var zoneNFT = marketplaceManager.GetZoneNFTById(building.BuildingId);
+                    nameText.text = zoneNFT?.Name ?? building.BuildingId;
+                }
+                else
+                {
+                    nameText.text = building.BuildingId;
+                }
+            }
             if (buildingImage != null) buildingImage.sprite = building.GetBuildingSprite();
             
             // Show the UI

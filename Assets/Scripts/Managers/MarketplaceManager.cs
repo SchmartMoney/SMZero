@@ -82,7 +82,7 @@ namespace SMZero
                 AddCharacterNFT("Jake", jakeSprite, NFTRarity.Epic, 12000f, 0.85f, 2.0f);
                 
                 // Add Zone NFTs
-                AddZoneNFT("Vault Avenue", vaultAvenueSprite, NFTRarity.Common, 500f);
+                AddZoneNFT("Vault of Fortune", vaultAvenueSprite, NFTRarity.Common, 500f, "Vault Avenue");
             }
             
             // Initialize state if it doesn't exist
@@ -269,7 +269,7 @@ namespace SMZero
             Debug.Log($"[MarketplaceManager] Added Character NFT: {name}");
         }
 
-        private void AddZoneNFT(string name, Sprite icon, NFTRarity rarity, float price)
+        private void AddZoneNFT(string name, Sprite icon, NFTRarity rarity, float price, string marketplaceName = null)
         {
             if (icon == null)
             {
@@ -280,7 +280,7 @@ namespace SMZero
             // Use consistent IDs based on name
             string id = name.ToLower() switch
             {
-                "vault avenue" => "vault-avenue-001",
+                "vault of fortune" => "vault-avenue-001",
                 _ => System.Guid.NewGuid().ToString()
             };
 
@@ -295,6 +295,7 @@ namespace SMZero
             {
                 Id = id,
                 Name = name,
+                MarketplaceName = marketplaceName ?? name,
                 Icon = icon,
                 Rarity = rarity,
                 cost = price,
